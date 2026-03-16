@@ -28,7 +28,7 @@ CREATE TABLE identity.accounts (
 
 CREATE SCHEMA transfer;
 
-CREATE TABLE transfer.transfers (
+CREATE TABLE transfer.transfer_requests (
 	id BIGINT GENERATED ALWAYS AS IDENTITY,
 	identifier UUID NOT NULL,
 	from_account_id  BIGINT NOT NULL,
@@ -36,15 +36,27 @@ CREATE TABLE transfer.transfers (
 	amount NUMERIC(18, 6) NOT NULL,
 	status TEXT NOT NULL,
 	failure_reason TEXT NULL,
-	created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+	requested_at TIMESTAMP WITH TIME ZONE NOT NULL,
 	PRIMARY KEY(id),
 	UNIQUE(identifier),
-	CONSTRAINT fk_transfers_from_account_to_account
+	CONSTRAINT fk_transfer_requests_from_account_to_account
 		FOREIGN KEY(from_account_id)
 			REFERENCES identity.accounts(id),
-	CONSTRAINT fk_transfers_to_account_to_account
+	CONSTRAINT fk_transfer_requests_to_account_to_account
 		FOREIGN KEY(to_account_id)
 			REFERENCES identity.accounts(id)
+);
+
+CREATE TABLE transfer.transfers (
+	id BIGINT GENERATED ALWAYS AS IDENTITY,
+	identifier UUID NOT NULL,
+	transfer_request_id BIGINT NOT NULL,
+	executed_at TIMESTAMP WITH TIME ZONE NOT NULL,
+	PRIMARY KEY(id),
+	UNIQUE (identifier),
+	CONSTRAINT fk_transfers_to_transfer_requests
+		FOREIGN KEY(transfer_request_id)
+			REFERENCES transfer.transfer_requests(id)
 );
 
 CREATE SCHEMA ledger;

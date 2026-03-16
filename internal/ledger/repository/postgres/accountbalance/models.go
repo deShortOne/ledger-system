@@ -97,6 +97,13 @@ type LedgerTransaction struct {
 }
 
 type TransferTransfer struct {
+	ID                int64
+	Identifier        uuid.UUID
+	TransferRequestID int64
+	ExecutedAt        time.Time
+}
+
+type TransferTransferRequest struct {
 	ID            int64
 	Identifier    uuid.UUID
 	FromAccountID int64
@@ -104,5 +111,5 @@ type TransferTransfer struct {
 	Amount        pgtype.Numeric
 	Status        string
 	FailureReason pgtype.Text
-	CreatedAt     time.Time
+	RequestedAt   time.Time
 }

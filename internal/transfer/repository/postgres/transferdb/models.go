@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.30.0
 
-package accountdb
+package transferdb
 
 import (
 	"database/sql/driver"

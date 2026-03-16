@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/deshortone/ledger-system/internal/testhelpers"
 	"github.com/google/uuid"
@@ -18,7 +17,6 @@ var (
 
 	account1Id uuid.UUID
 	account2Id uuid.UUID
-	transferId uuid.UUID
 )
 
 func TestMain(m *testing.M) {
@@ -33,13 +31,13 @@ func TestMain(m *testing.M) {
 	dbURL = tc.DBURL
 	pool = tc.Pool
 
-	ledgerDbGlobalSeed(ctx)
+	transferDbGlobalSeed(ctx)
 
 	code := m.Run()
 	os.Exit(code)
 }
 
-func ledgerDbGlobalSeed(ctx context.Context) {
+func transferDbGlobalSeed(ctx context.Context) {
 	var err error
 	// add user
 	_, err = pool.Exec(ctx, `
@@ -59,39 +57,6 @@ func ledgerDbGlobalSeed(ctx context.Context) {
 		OVERRIDING SYSTEM VALUE
         VALUES ($1, $2, $3,  NOW(), $4, $5, $6), ($7, $8, $3, NOW(), $4, $5, $6);
     `, 1, account1Id, 1, "account type", "GBP", "available", 2, account2Id)
-	if err != nil {
-		panic(err)
-	}
-
-	// add transfers
-	_, err = pool.Exec(ctx, `
-        INSERT INTO transfer.transfer_requests (id, identifier, from_account_id, to_account_id, amount, status, requested_at)
-		OVERRIDING SYSTEM VALUE
-        VALUES ($1, $2, $3, $4, $5, $6, NOW());
-    `, 1, uuid.New(), 1, 2, 100, "posted")
-	if err != nil {
-		panic(err)
-	}
-
-	transferId = uuid.New()
-	_, err = pool.Exec(ctx, `
-        INSERT INTO transfer.transfers (id, identifier, transfer_request_id, executed_at)
-		OVERRIDING SYSTEM VALUE
-        VALUES ($1, $2, $3, NOW());
-    `, 1, transferId, 1)
-	if err != nil {
-		panic(err)
-	}
-
-	// add account balances
-	timee, err := time.Parse("2006-01-02 15:04:05 -0700", "2026-03-15 12:00:00 +0000")
-	if err != nil {
-		panic(err)
-	}
-	_, err = pool.Exec(ctx, `
-        INSERT INTO ledger.account_balances (account_id, available_balance, updated_at)
-        VALUES ($1, $2, $3), ($4, $2, $3);
-    `, 1, 100, timee, 2)
 	if err != nil {
 		panic(err)
 	}
