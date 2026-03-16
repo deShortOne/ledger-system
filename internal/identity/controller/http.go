@@ -6,22 +6,24 @@ import (
 	"time"
 
 	"github.com/deshortone/ledger-system/internal/identity/domain"
-	"github.com/deshortone/ledger-system/internal/identity/dto"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type Handler struct {
 	accountService domain.AccountService
+	accountCreator domain.AccountCreator
 	userService    domain.UserService
 }
 
 func NewHandler(
 	accountService domain.AccountService,
+	accountCreator domain.AccountCreator,
 	userService domain.UserService,
 ) Handler {
 	return Handler{
 		accountService: accountService,
+		accountCreator: accountCreator,
 		userService:    userService,
 	}
 }
@@ -86,11 +88,7 @@ func (h *Handler) createAccount(c *gin.Context) {
 		return
 	}
 
-	accountToCreate := dto.Account{
-		AccountType: daRequest.AccountType,
-		Currency:    daRequest.Currency,
-	}
-	if err := h.accountService.AddAccountToUser(c.Request.Context(), userId, accountToCreate); err != nil {
+	if _, err := h.accountCreator.AddAccountToUser(c.Request.Context(), userId, daRequest.AccountType, daRequest.Currency); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("unknown error occured: %s", err.Error())})
 		return
 	}

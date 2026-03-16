@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/deshortone/ledger-system/internal/ledger/contracts"
 	"github.com/deshortone/ledger-system/internal/ledger/domain"
@@ -78,4 +79,8 @@ func (s LedgerService) AddToLedger(ctx context.Context, tx pgx.Tx, request contr
 	}
 
 	return nil
+}
+
+func (s LedgerService) CreateNewAccount(ctx context.Context, accountId uuid.UUID, createdAt time.Time) error {
+	return s.accountBalanceRepository.CreateNewAccountBalance(ctx, accountId, createdAt)
 }

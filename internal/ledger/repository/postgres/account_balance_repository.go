@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"time"
 
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
 	"github.com/deshortone/ledger-system/internal/ledger/repository/postgres/accountbalance"
@@ -23,16 +24,15 @@ func NewAccountBalancePostgresRepository(pool *pgxpool.Pool) *AccountBalancePost
 	}
 }
 
-func (r *AccountBalancePostgresRepository) CreateAccountBalance(ctx context.Context, tx pgx.Tx, record dto.AccountBalance) error {
-	queries := r.queries.WithTx(tx)
-	balance, err := Float64ToNumeric(record.Availablebalance)
+func (r *AccountBalancePostgresRepository) CreateNewAccountBalance(ctx context.Context, accountId uuid.UUID, createdAt time.Time) error {
+	balance, err := Float64ToNumeric(0)
 	if err != nil {
 		return err
 	}
-	return queries.CreateAccountBalance(ctx, accountbalance.CreateAccountBalanceParams{
-		Identifier:       record.AccountId,
+	return r.queries.CreateAccountBalance(ctx, accountbalance.CreateAccountBalanceParams{
+		Identifier:       accountId,
 		AvailableBalance: balance,
-		UpdatedAt:        record.UpdatedAt,
+		UpdatedAt:        createdAt,
 	})
 }
 

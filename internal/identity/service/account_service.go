@@ -25,21 +25,26 @@ func NewAccountService(
 
 func (s AccountService) AddAccountToUser(ctx context.Context,
 	userIdentifier uuid.UUID,
-	accountToCreate dto.Account,
-) error {
+	accountType, currency string,
+) (dto.Account, error) {
 	user, err := s.userRepository.GetUser(ctx, userIdentifier)
 	if err != nil {
-		return err
+		return dto.Account{}, err
 	}
 
-	return s.accountRepository.CreateAccount(ctx, dto.Account{
+	account := dto.Account{
 		Identifier:     uuid.New(),
 		UserIdentifier: user.Identifier,
 		CreatedAt:      dto.NewCustomTimeNow(),
-		AccountType:    accountToCreate.AccountType,
-		Currency:       accountToCreate.Currency,
+		AccountType:    accountType,
+		Currency:       currency,
 		Status:         "available",
-	})
+	}
+	if err = s.accountRepository.CreateAccount(ctx, account); err != nil {
+		return dto.Account{}, err
+	}
+
+	return account, nil
 }
 
 func (s AccountService) GetAccountsOwnedByUser(ctx context.Context, identifier uuid.UUID) ([]dto.Account, error) {

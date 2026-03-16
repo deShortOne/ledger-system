@@ -24,13 +24,18 @@ func TestAddToLedger(t *testing.T) {
 		require.NoError(t, err)
 
 		accountBalanceRepository := memory.NewAccountBalanceInMemoryRepository()
-		err = accountBalanceRepository.CreateAccountBalance(t.Context(), tx, dto.AccountBalance{
+		err = accountBalanceRepository.CreateNewAccountBalance(t.Context(), account1Id, timeAccount1)
+		require.NoError(t, err)
+		err = accountBalanceRepository.UpdateAccountBalance(t.Context(), tx, dto.AccountBalance{
 			AccountId:        account1Id,
 			Availablebalance: 100,
 			UpdatedAt:        timeAccount1,
 		})
 		require.NoError(t, err)
-		err = accountBalanceRepository.CreateAccountBalance(t.Context(), tx, dto.AccountBalance{
+
+		err = accountBalanceRepository.CreateNewAccountBalance(t.Context(), account2Id, timeAccount1)
+		require.NoError(t, err)
+		err = accountBalanceRepository.UpdateAccountBalance(t.Context(), tx, dto.AccountBalance{
 			AccountId:        account2Id,
 			Availablebalance: 100,
 			UpdatedAt:        timeAccount1,
@@ -57,8 +62,7 @@ func TestAddToLedger(t *testing.T) {
 				},
 			},
 		})
-
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		account1, err := accountBalanceRepository.GetAccountBalance(t.Context(), tx, account1Id)
 		require.NoError(t, err)
@@ -80,13 +84,18 @@ func TestAddToLedger(t *testing.T) {
 		require.NoError(t, err)
 
 		accountBalanceRepository := memory.NewAccountBalanceInMemoryRepository()
-		err = accountBalanceRepository.CreateAccountBalance(t.Context(), tx, dto.AccountBalance{
+		err = accountBalanceRepository.CreateNewAccountBalance(t.Context(), account1Id, timeAccount1)
+		require.NoError(t, err)
+		err = accountBalanceRepository.UpdateAccountBalance(t.Context(), tx, dto.AccountBalance{
 			AccountId:        account1Id,
 			Availablebalance: 100,
 			UpdatedAt:        timeAccount1,
 		})
 		require.NoError(t, err)
-		err = accountBalanceRepository.CreateAccountBalance(t.Context(), tx, dto.AccountBalance{
+
+		err = accountBalanceRepository.CreateNewAccountBalance(t.Context(), account2Id, timeAccount1)
+		require.NoError(t, err)
+		err = accountBalanceRepository.UpdateAccountBalance(t.Context(), tx, dto.AccountBalance{
 			AccountId:        account2Id,
 			Availablebalance: 100,
 			UpdatedAt:        timeAccount1,
@@ -127,17 +136,9 @@ func TestAddToLedger(t *testing.T) {
 		require.NoError(t, err)
 
 		accountBalanceRepository := memory.NewAccountBalanceInMemoryRepository()
-		err = accountBalanceRepository.CreateAccountBalance(t.Context(), tx, dto.AccountBalance{
-			AccountId:        account1Id,
-			Availablebalance: 100,
-			UpdatedAt:        timeAccount1,
-		})
+		err = accountBalanceRepository.CreateNewAccountBalance(t.Context(), account1Id, timeAccount1)
 		require.NoError(t, err)
-		err = accountBalanceRepository.CreateAccountBalance(t.Context(), tx, dto.AccountBalance{
-			AccountId:        account2Id,
-			Availablebalance: 5,
-			UpdatedAt:        timeAccount1,
-		})
+		err = accountBalanceRepository.CreateNewAccountBalance(t.Context(), account2Id, timeAccount1)
 		require.NoError(t, err)
 
 		ledgerRepository := memory.NewLedgerInMemoryRepository()

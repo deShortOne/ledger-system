@@ -17,20 +17,13 @@ func TestAccount(t *testing.T) {
 	t.Run("when user doesn't exist", func(t *testing.T) {
 		badIdentifier, err := uuid.Parse("44e35ed1-0a73-4cc1-b302-925b50a6405e")
 		require.NoError(t, err)
-		err = accountService.AddAccountToUser(t.Context(), badIdentifier, dto.Account{
-			AccountType: "",
-			Currency:    "",
-		})
+		_, err = accountService.AddAccountToUser(t.Context(), badIdentifier, "", "")
 
 		assert.ErrorIs(t, common.ErrUserIdentifierNotFound, err)
 	})
 
 	t.Run("successfully adding account and retrieving", func(t *testing.T) {
-		account := dto.Account{
-			AccountType: "checking",
-			Currency:    "GBP",
-		}
-		err := accountService.AddAccountToUser(t.Context(), userIdentifiers[0], account)
+		account, err := accountService.AddAccountToUser(t.Context(), userIdentifiers[0], "checking", "GBP")
 
 		require.NoError(t, err)
 		assert.Equal(t, "checking", account.AccountType)

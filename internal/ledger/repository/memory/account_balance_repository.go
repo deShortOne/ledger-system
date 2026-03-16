@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
 	"github.com/google/uuid"
@@ -41,7 +42,11 @@ func (r *AccountBalanceInMemoryRepository) UpdateAccountBalance(ctx context.Cont
 	return errors.New("account balance not found")
 }
 
-func (r *AccountBalanceInMemoryRepository) CreateAccountBalance(ctx context.Context, tx pgx.Tx, record dto.AccountBalance) error {
-	r.accountBalances = append(r.accountBalances, record)
+func (r *AccountBalanceInMemoryRepository) CreateNewAccountBalance(ctx context.Context, accountId uuid.UUID, createdAt time.Time) error {
+	r.accountBalances = append(r.accountBalances, dto.AccountBalance{
+		AccountId:        accountId,
+		Availablebalance: 0,
+		UpdatedAt:        createdAt,
+	})
 	return nil
 }

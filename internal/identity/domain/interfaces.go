@@ -12,8 +12,11 @@ type AccountRepository interface {
 	GetAccountsOwnedByUser(ctx context.Context, user dto.User) ([]dto.Account, error)
 }
 
+type AccountCreator interface {
+	AddAccountToUser(ctx context.Context, userIdentifier uuid.UUID, accountType, currency string) (dto.Account, error)
+}
+
 type AccountService interface {
-	AddAccountToUser(ctx context.Context, userIdentifier uuid.UUID, accountToCreate dto.Account) error
 	GetAccountsOwnedByUser(ctx context.Context, identifier uuid.UUID) ([]dto.Account, error)
 }
 

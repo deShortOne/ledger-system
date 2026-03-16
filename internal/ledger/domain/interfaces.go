@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"time"
 
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
 	"github.com/google/uuid"
@@ -14,7 +15,7 @@ type LedgerRepository interface {
 }
 
 type AccountBalanceRepository interface {
-	CreateAccountBalance(ctx context.Context, tx pgx.Tx, record dto.AccountBalance) error
+	CreateNewAccountBalance(ctx context.Context, accountId uuid.UUID, updatedAt time.Time) error
 	GetAccountBalance(ctx context.Context, tx pgx.Tx, accountId uuid.UUID) (dto.AccountBalance, error)
 	UpdateAccountBalance(ctx context.Context, tx pgx.Tx, record dto.AccountBalance) error
 }
