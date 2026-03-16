@@ -16,16 +16,15 @@ func NewAccountInMemoryRepository() *AccountInMemoryRepository {
 	}
 }
 
-func (r *AccountInMemoryRepository) CreateAccount(ctx context.Context, account dto.Account) (dto.Account, error) {
-	account.Id = int64(len(r.accounts) + 1)
+func (r *AccountInMemoryRepository) CreateAccount(ctx context.Context, account dto.Account) error {
 	r.accounts = append(r.accounts, account)
-	return account, nil
+	return nil
 }
 
 func (r *AccountInMemoryRepository) GetAccountsOwnedByUser(ctx context.Context, user dto.User) ([]dto.Account, error) {
 	accounts := []dto.Account{}
 	for _, account := range r.accounts {
-		if account.UserId == user.Id {
+		if account.UserIdentifier == user.Identifier {
 			accounts = append(accounts, account)
 		}
 	}

@@ -90,7 +90,7 @@ func (h *Handler) createAccount(c *gin.Context) {
 		AccountType: daRequest.AccountType,
 		Currency:    daRequest.Currency,
 	}
-	if _, err := h.accountService.AddAccountToUser(c.Request.Context(), userId, accountToCreate); err != nil {
+	if err := h.accountService.AddAccountToUser(c.Request.Context(), userId, accountToCreate); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("unknown error occured: %s", err.Error())})
 		return
 	}

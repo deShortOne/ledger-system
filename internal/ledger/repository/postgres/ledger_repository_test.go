@@ -49,7 +49,7 @@ func TestCreatingLedgerEntry(t *testing.T) {
 		// clean up
 		_, err = pool.Exec(t.Context(), "TRUNCATE TABLE ledger.ledger_entries;")
 		require.NoError(t, err)
-		_, err = pool.Exec(t.Context(), "TRUNCATE TABLE ledger.transactions;")
+		_, err = pool.Exec(t.Context(), "DELETE FROM ledger.transactions where 1011 = 1011;")
 		require.NoError(t, err)
 	})
 

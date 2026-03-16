@@ -17,10 +17,9 @@ func NewUserInMemoryRepository() *UserInMemoryRepository {
 		users: []dto.User{},
 	}
 }
-func (r *UserInMemoryRepository) CreateUser(ctx context.Context, user dto.User) (dto.User, error) {
-	user.Id = int64(len(r.users) + 1)
+func (r *UserInMemoryRepository) CreateUser(ctx context.Context, user dto.User) error {
 	r.users = append(r.users, user)
-	return user, nil
+	return nil
 }
 
 func (r *UserInMemoryRepository) GetUser(ctx context.Context, identifier uuid.UUID) (dto.User, error) {
@@ -29,5 +28,6 @@ func (r *UserInMemoryRepository) GetUser(ctx context.Context, identifier uuid.UU
 			return user, nil
 		}
 	}
+
 	return dto.User{}, common.ErrUserIdentifierNotFound
 }

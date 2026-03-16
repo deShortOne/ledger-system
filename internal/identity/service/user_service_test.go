@@ -25,7 +25,6 @@ func TestUser(t *testing.T) {
 	t.Run("Succeed", func(t *testing.T) {
 		userCreated, err := service.CreateNewUser(t.Context(), "first name", "last name")
 		require.NoError(t, err)
-		assert.NotNil(t, userCreated.Id)
 		assert.NotNil(t, userCreated.Identifier)
 		assert.Equal(t, "first name", userCreated.FirstName)
 		assert.Equal(t, "last name", userCreated.LastName)

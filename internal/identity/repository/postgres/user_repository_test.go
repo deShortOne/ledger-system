@@ -12,7 +12,6 @@ import (
 
 func TestCanHandleUsers(t *testing.T) {
 	userToAdd := dto.User{
-		Id:         -1,
 		Identifier: uuid.New(),
 		FirstName:  "the first name",
 		LastName:   "the last name",
@@ -26,16 +25,14 @@ func TestCanHandleUsers(t *testing.T) {
 	})
 
 	t.Run("Successfully add and get new user", func(t *testing.T) {
-		user, err := r.CreateUser(t.Context(), userToAdd)
-
+		err := r.CreateUser(t.Context(), userToAdd)
 		require.NoError(t, err)
+
+		user, err := r.GetUser(t.Context(), userToAdd.Identifier)
+		assert.NoError(t, err)
 		assert.Equal(t, userToAdd.Identifier, user.Identifier)
 		assert.Equal(t, userToAdd.FirstName, user.FirstName)
 		assert.Equal(t, userToAdd.LastName, user.LastName)
-
-		userToAdd.Id = user.Id
-		user, err = r.GetUser(t.Context(), userToAdd.Identifier)
-		require.NoError(t, err)
 		assert.Equal(t, userToAdd, user)
 	})
 }

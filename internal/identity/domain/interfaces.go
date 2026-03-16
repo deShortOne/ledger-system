@@ -8,17 +8,17 @@ import (
 )
 
 type AccountRepository interface {
-	CreateAccount(ctx context.Context, account dto.Account) (dto.Account, error)
+	CreateAccount(ctx context.Context, account dto.Account) error
 	GetAccountsOwnedByUser(ctx context.Context, user dto.User) ([]dto.Account, error)
 }
 
 type AccountService interface {
-	AddAccountToUser(ctx context.Context, userIdentifier uuid.UUID, accountToCreate dto.Account) (dto.Account, error)
+	AddAccountToUser(ctx context.Context, userIdentifier uuid.UUID, accountToCreate dto.Account) error
 	GetAccountsOwnedByUser(ctx context.Context, identifier uuid.UUID) ([]dto.Account, error)
 }
 
 type UserRepository interface {
-	CreateUser(ctx context.Context, user dto.User) (dto.User, error)
+	CreateUser(ctx context.Context, user dto.User) error
 	GetUser(ctx context.Context, identifier uuid.UUID) (dto.User, error)
 }
 

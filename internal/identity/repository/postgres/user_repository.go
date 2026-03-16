@@ -26,19 +26,17 @@ func NewUserPostgresRepository(pool *pgxpool.Pool) *UserPostgresRepository {
 	}
 }
 
-func (r *UserPostgresRepository) CreateUser(ctx context.Context, user dto.User) (dto.User, error) {
-	userId, err := r.queries.CreateUser(ctx, userdb.CreateUserParams{
+func (r *UserPostgresRepository) CreateUser(ctx context.Context, user dto.User) error {
+	_, err := r.queries.CreateUser(ctx, userdb.CreateUserParams{
 		Identifier: user.Identifier,
 		FirstName:  user.FirstName,
 		LastName:   user.LastName,
 	})
 	if err != nil {
-		return dto.User{}, err
+		return err
 	}
 
-	user.Id = userId
-
-	return user, nil
+	return nil
 }
 
 func (r *UserPostgresRepository) GetUser(ctx context.Context, identifier uuid.UUID) (dto.User, error) {
@@ -51,7 +49,6 @@ func (r *UserPostgresRepository) GetUser(ctx context.Context, identifier uuid.UU
 	}
 
 	return dto.User{
-		Id:         user.ID,
 		Identifier: identifier,
 		FirstName:  user.FirstName,
 		LastName:   user.LastName,

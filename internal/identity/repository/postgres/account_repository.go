@@ -22,26 +22,25 @@ func NewAccountPostgresRepository(pool *pgxpool.Pool) *AccountPostgresRepository
 	}
 }
 
-func (r *AccountPostgresRepository) CreateAccount(ctx context.Context, account dto.Account) (dto.Account, error) {
-	accountId, err := r.queries.CreateAccount(ctx, accountdb.CreateAccountParams{
-		Identifier:  account.Identifier,
-		UserID:      account.UserId,
-		CreatedAt:   account.CreatedAt.Time,
-		AccountType: account.AccountType,
-		Currency:    account.Currency,
-		Status:      account.Status,
+func (r *AccountPostgresRepository) CreateAccount(ctx context.Context, account dto.Account) error {
+	err := r.queries.CreateAccount(ctx, accountdb.CreateAccountParams{
+		Identifier:   account.Identifier,
+		Identifier_2: account.UserIdentifier,
+		CreatedAt:    account.CreatedAt.Time,
+		AccountType:  account.AccountType,
+		Currency:     account.Currency,
+		Status:       account.Status,
 	})
 
 	if err != nil {
-		return dto.Account{}, err
+		return err
 	}
 
-	account.Id = accountId
-	return account, nil
+	return nil
 }
 
 func (r *AccountPostgresRepository) GetAccountsOwnedByUser(ctx context.Context, user dto.User) ([]dto.Account, error) {
-	accounts, err := r.queries.GetAccountsOwnedByUser(ctx, user.Id)
+	accounts, err := r.queries.GetAccountsOwnedByUser(ctx, user.Identifier)
 	if err != nil {
 		return []dto.Account{}, err
 	}
@@ -49,13 +48,12 @@ func (r *AccountPostgresRepository) GetAccountsOwnedByUser(ctx context.Context, 
 	accountsResponse := []dto.Account{}
 	for _, account := range accounts {
 		accountsResponse = append(accountsResponse, dto.Account{
-			Id:          account.ID,
-			Identifier:  account.Identifier,
-			UserId:      user.Id,
-			CreatedAt:   dto.NewCustomTime(account.CreatedAt),
-			AccountType: account.AccountType,
-			Currency:    account.Currency,
-			Status:      account.Status,
+			Identifier:     account.AccountIdentifier,
+			UserIdentifier: user.Identifier,
+			CreatedAt:      dto.NewCustomTime(account.CreatedAt),
+			AccountType:    account.AccountType,
+			Currency:       account.Currency,
+			Status:         account.Status,
 		})
 	}
 

@@ -30,5 +30,7 @@ func (s UserService) CreateNewUser(ctx context.Context, firstName, lastName stri
 		LastName:   lastName,
 	}
 
-	return s.userRepository.CreateUser(ctx, userToCreate)
+	s.userRepository.CreateUser(ctx, userToCreate)
+
+	return userToCreate, nil
 }

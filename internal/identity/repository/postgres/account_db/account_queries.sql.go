@@ -12,60 +12,60 @@ import (
 	"github.com/google/uuid"
 )
 
-const createAccount = `-- name: CreateAccount :one
-INSERT INTO identity.accounts (
-    identifier,
-    user_id,
-    created_at,
-    account_type,
-    currency,
-    "status"
-) VALUES (
-    $1, $2, $3, $4, $5, $6
-)
-RETURNING id
+const createAccount = `-- name: CreateAccount :exec
+INSERT INTO identity.accounts (identifier, user_id, created_at, account_type, currency, status)
+SELECT  $1, users.id, $3, $4, $5, $6
+FROM identity.users
+WHERE users.identifier = $2
 `
 
 type CreateAccountParams struct {
-	Identifier  uuid.UUID
-	UserID      int64
-	CreatedAt   time.Time
-	AccountType string
-	Currency    string
-	Status      string
+	Identifier   uuid.UUID
+	Identifier_2 uuid.UUID
+	CreatedAt    time.Time
+	AccountType  string
+	Currency     string
+	Status       string
 }
 
-func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (int64, error) {
-	row := q.db.QueryRow(ctx, createAccount,
+func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) error {
+	_, err := q.db.Exec(ctx, createAccount,
 		arg.Identifier,
-		arg.UserID,
+		arg.Identifier_2,
 		arg.CreatedAt,
 		arg.AccountType,
 		arg.Currency,
 		arg.Status,
 	)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+	return err
 }
 
 const getAccountsOwnedByUser = `-- name: GetAccountsOwnedByUser :many
-SELECT id, identifier, created_at, account_type, currency, status
+SELECT id,
+    identifier account_identifier,
+    created_at,
+    account_type,
+    currency,
+    status
 FROM identity.accounts
-WHERE user_id = $1
+WHERE user_id = (
+    SELECT id
+    FROM identity.users
+    WHERE users.identifier = $1
+)
 `
 
 type GetAccountsOwnedByUserRow struct {
-	ID          int64
-	Identifier  uuid.UUID
-	CreatedAt   time.Time
-	AccountType string
-	Currency    string
-	Status      string
+	ID                int64
+	AccountIdentifier uuid.UUID
+	CreatedAt         time.Time
+	AccountType       string
+	Currency          string
+	Status            string
 }
 
-func (q *Queries) GetAccountsOwnedByUser(ctx context.Context, userID int64) ([]GetAccountsOwnedByUserRow, error) {
-	rows, err := q.db.Query(ctx, getAccountsOwnedByUser, userID)
+func (q *Queries) GetAccountsOwnedByUser(ctx context.Context, identifier uuid.UUID) ([]GetAccountsOwnedByUserRow, error) {
+	rows, err := q.db.Query(ctx, getAccountsOwnedByUser, identifier)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (q *Queries) GetAccountsOwnedByUser(ctx context.Context, userID int64) ([]G
 		var i GetAccountsOwnedByUserRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.Identifier,
+			&i.AccountIdentifier,
 			&i.CreatedAt,
 			&i.AccountType,
 			&i.Currency,

@@ -26,19 +26,19 @@ func NewAccountService(
 func (s AccountService) AddAccountToUser(ctx context.Context,
 	userIdentifier uuid.UUID,
 	accountToCreate dto.Account,
-) (dto.Account, error) {
+) error {
 	user, err := s.userRepository.GetUser(ctx, userIdentifier)
 	if err != nil {
-		return dto.Account{}, err
+		return err
 	}
 
 	return s.accountRepository.CreateAccount(ctx, dto.Account{
-		Identifier:  uuid.New(),
-		UserId:      user.Id,
-		CreatedAt:   dto.NewCustomTimeNow(),
-		AccountType: accountToCreate.AccountType,
-		Currency:    accountToCreate.Currency,
-		Status:      "available",
+		Identifier:     uuid.New(),
+		UserIdentifier: user.Identifier,
+		CreatedAt:      dto.NewCustomTimeNow(),
+		AccountType:    accountToCreate.AccountType,
+		Currency:       accountToCreate.Currency,
+		Status:         "available",
 	})
 }
 

@@ -5,11 +5,10 @@ import (
 )
 
 type Account struct {
-	Id          int64
-	Identifier  uuid.UUID
-	UserId      int64
-	CreatedAt   CustomTime
-	AccountType string
-	Currency    string
-	Status      string
+	Identifier     uuid.UUID
+	UserIdentifier uuid.UUID
+	CreatedAt      CustomTime
+	AccountType    string
+	Currency       string
+	Status         string
 }

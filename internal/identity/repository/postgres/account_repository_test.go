@@ -23,14 +23,16 @@ func TestCanHandleAccounts(t *testing.T) {
 	t.Run("Successfully add and get accounts assigned to user 1 but not user 2", func(t *testing.T) {
 		accountsAdded := make([]dto.Account, 0, 2)
 		for range 2 {
-			account, err := r.CreateAccount(t.Context(), dto.Account{
-				Identifier:  uuid.New(),
-				UserId:      users[0].Id,
-				CreatedAt:   dto.NewCustomTime(time.Now()), // flakey due to timezones?
-				AccountType: "Checking",
-				Currency:    "GBP",
-				Status:      "active",
-			})
+			account := dto.Account{
+				Identifier:     uuid.New(),
+				UserIdentifier: users[0].Identifier,
+				CreatedAt:      dto.NewCustomTime(time.Now()), // flakey due to timezones?
+				AccountType:    "Checking",
+				Currency:       "GBP",
+				Status:         "active",
+			}
+
+			err := r.CreateAccount(t.Context(), account)
 			require.NoError(t, err)
 			accountsAdded = append(accountsAdded, account)
 		}
@@ -51,16 +53,15 @@ func initaliseUsers(t *testing.T) []dto.User {
 	users := make([]dto.User, 0, 2)
 	for range 2 {
 		userToAdd := dto.User{
-			Id:         -1,
 			Identifier: uuid.New(),
 			FirstName:  "the first name",
 			LastName:   "the last name",
 		}
 
 		r := NewUserPostgresRepository(pool)
-		user, err := r.CreateUser(t.Context(), userToAdd)
+		err := r.CreateUser(t.Context(), userToAdd)
 		require.NoError(t, err)
-		users = append(users, user)
+		users = append(users, userToAdd)
 	}
 	return users
 }

@@ -17,7 +17,7 @@ func TestAccount(t *testing.T) {
 	t.Run("when user doesn't exist", func(t *testing.T) {
 		badIdentifier, err := uuid.Parse("44e35ed1-0a73-4cc1-b302-925b50a6405e")
 		require.NoError(t, err)
-		_, err = accountService.AddAccountToUser(t.Context(), badIdentifier, dto.Account{
+		err = accountService.AddAccountToUser(t.Context(), badIdentifier, dto.Account{
 			AccountType: "",
 			Currency:    "",
 		})
@@ -26,10 +26,11 @@ func TestAccount(t *testing.T) {
 	})
 
 	t.Run("successfully adding account and retrieving", func(t *testing.T) {
-		account, err := accountService.AddAccountToUser(t.Context(), userIdentifiers[0], dto.Account{
+		account := dto.Account{
 			AccountType: "checking",
 			Currency:    "GBP",
-		})
+		}
+		err := accountService.AddAccountToUser(t.Context(), userIdentifiers[0], account)
 
 		require.NoError(t, err)
 		assert.Equal(t, "checking", account.AccountType)
@@ -49,12 +50,11 @@ func setupAccountServiceTest(t *testing.T) (AccountService, []uuid.UUID) {
 		"8be4df61-93ca-11d2-aa0d-00e098032b8c",
 		"6052e192-f75a-4c62-a8c9-ec237db718de",
 	}
-	for i, manualIdentifier := range manualIdentifiers {
+	for _, manualIdentifier := range manualIdentifiers {
 		userIdentifier, err := uuid.Parse(manualIdentifier)
 		require.NoError(t, err)
 		userIdentifiers = append(userIdentifiers, userIdentifier)
-		_, err = userRepo.CreateUser(t.Context(), dto.User{
-			Id:         int64(i + 1),
+		err = userRepo.CreateUser(t.Context(), dto.User{
 			Identifier: userIdentifier,
 			FirstName:  "first name",
 			LastName:   "last name",
