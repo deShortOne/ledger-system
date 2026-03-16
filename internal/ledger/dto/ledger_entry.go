@@ -8,10 +8,9 @@ import (
 )
 
 type LedgerEntry struct {
-	Id            int64
 	Identifier    uuid.UUID
-	TransactionId int64
-	AccountId     int64
+	TransactionId uuid.UUID
+	AccountId     uuid.UUID
 	Amount        float64
 	Direction     contracts.LedgerDirection
 	CreatedAt     time.Time

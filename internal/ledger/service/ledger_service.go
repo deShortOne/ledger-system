@@ -22,7 +22,8 @@ func NewLedgerService(ledgerRepository domain.LedgerRepository) LedgerService {
 
 func (s LedgerService) AddToLedger(ctx context.Context, tx pgx.Tx, request contracts.AddToLedgerRequest) error {
 	var sumOfMonies float64
-	transaction, err := s.ledgerRepository.CreateTransaction(ctx, tx, dto.Transaction{
+	transactionId := uuid.New()
+	err := s.ledgerRepository.CreateTransaction(ctx, tx, dto.Transaction{
 		Identifier: uuid.New(),
 		TransferId: request.TransferId,
 		CreatedAt:  request.CreatedAt,
@@ -51,9 +52,9 @@ func (s LedgerService) AddToLedger(ctx context.Context, tx pgx.Tx, request contr
 		}
 		accountBalance.UpdatedAt = request.CreatedAt
 
-		_, err = s.ledgerRepository.CreateLedgerEntry(ctx, tx, dto.LedgerEntry{
+		err = s.ledgerRepository.CreateLedgerEntry(ctx, tx, dto.LedgerEntry{
 			Identifier:    uuid.New(),
-			TransactionId: transaction.Id,
+			TransactionId: transactionId,
 			AccountId:     entry.AccountId,
 			Amount:        entry.Amount,
 			Direction:     contracts.LedgerDirection(entry.Direction),

@@ -13,70 +13,74 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createLedgerEntry = `-- name: CreateLedgerEntry :one
-INSERT INTO ledger.ledger_entries (
-    identifier, transaction_id, account_id, amount, direction, created_at
-) VALUES (
-    $1, $2, $3, $4, $5, $6
+const createLedgerEntry = `-- name: CreateLedgerEntry :exec
+INSERT INTO ledger.ledger_entries (identifier, transaction_id, account_id, amount, direction, created_at)
+VALUES (
+    $1,
+    (SELECT transactions.id FROM ledger.transactions where transactions.identifier = $2),
+    (SELECT accounts.id FROM identity.accounts where accounts.identifier = $3),
+    $4,
+    $5,
+    $6
 )
-RETURNING id
 `
 
 type CreateLedgerEntryParams struct {
-	Identifier    uuid.UUID
-	TransactionID int64
-	AccountID     int64
-	Amount        pgtype.Numeric
-	Direction     LedgerEntryDirection
-	CreatedAt     time.Time
+	Identifier   uuid.UUID
+	Identifier_2 uuid.UUID
+	Identifier_3 uuid.UUID
+	Amount       pgtype.Numeric
+	Direction    LedgerEntryDirection
+	CreatedAt    time.Time
 }
 
-func (q *Queries) CreateLedgerEntry(ctx context.Context, arg CreateLedgerEntryParams) (int64, error) {
-	row := q.db.QueryRow(ctx, createLedgerEntry,
+func (q *Queries) CreateLedgerEntry(ctx context.Context, arg CreateLedgerEntryParams) error {
+	_, err := q.db.Exec(ctx, createLedgerEntry,
 		arg.Identifier,
-		arg.TransactionID,
-		arg.AccountID,
+		arg.Identifier_2,
+		arg.Identifier_3,
 		arg.Amount,
 		arg.Direction,
 		arg.CreatedAt,
 	)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+	return err
 }
 
-const createTransaction = `-- name: CreateTransaction :one
-INSERT INTO ledger.transactions (
-    identifier, transfer_id, created_at, status
-) VALUES (
-    $1, $2, $3, $4
+const createTransaction = `-- name: CreateTransaction :exec
+INSERT INTO ledger.transactions (identifier, transfer_id, created_at, status) 
+VALUES (
+    $1,
+    (SELECT transfers.id FROM transfer.transfers WHERE transfers.identifier = $2),
+    $3,
+    $4
 )
-RETURNING id
 `
 
 type CreateTransactionParams struct {
-	Identifier uuid.UUID
-	TransferID int64
-	CreatedAt  time.Time
-	Status     string
+	Identifier   uuid.UUID
+	Identifier_2 uuid.UUID
+	CreatedAt    time.Time
+	Status       string
 }
 
-func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (int64, error) {
-	row := q.db.QueryRow(ctx, createTransaction,
+func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) error {
+	_, err := q.db.Exec(ctx, createTransaction,
 		arg.Identifier,
-		arg.TransferID,
+		arg.Identifier_2,
 		arg.CreatedAt,
 		arg.Status,
 	)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+	return err
 }
 
 const getAccountBalanceAndLock = `-- name: GetAccountBalanceAndLock :one
 SELECT available_balance, updated_at
 FROM ledger.account_balances
-WHERE account_id = $1
+WHERE account_id = (
+    SELECT accounts.id
+    FROM identity.accounts
+    WHERE accounts.identifier = $1
+)
 FOR UPDATE
 `
 
@@ -85,8 +89,8 @@ type GetAccountBalanceAndLockRow struct {
 	UpdatedAt        time.Time
 }
 
-func (q *Queries) GetAccountBalanceAndLock(ctx context.Context, accountID int64) (GetAccountBalanceAndLockRow, error) {
-	row := q.db.QueryRow(ctx, getAccountBalanceAndLock, accountID)
+func (q *Queries) GetAccountBalanceAndLock(ctx context.Context, identifier uuid.UUID) (GetAccountBalanceAndLockRow, error) {
+	row := q.db.QueryRow(ctx, getAccountBalanceAndLock, identifier)
 	var i GetAccountBalanceAndLockRow
 	err := row.Scan(&i.AvailableBalance, &i.UpdatedAt)
 	return i, err
@@ -96,16 +100,20 @@ const updateAccountBalance = `-- name: UpdateAccountBalance :exec
 UPDATE ledger.account_balances
 SET available_balance = $2,
     updated_at = $3
-WHERE account_id = $1
+WHERE account_id = (
+    SELECT accounts.id
+    FROM identity.accounts
+    WHERE accounts.identifier = $1
+)
 `
 
 type UpdateAccountBalanceParams struct {
-	AccountID        int64
+	Identifier       uuid.UUID
 	AvailableBalance pgtype.Numeric
 	UpdatedAt        time.Time
 }
 
 func (q *Queries) UpdateAccountBalance(ctx context.Context, arg UpdateAccountBalanceParams) error {
-	_, err := q.db.Exec(ctx, updateAccountBalance, arg.AccountID, arg.AvailableBalance, arg.UpdatedAt)
+	_, err := q.db.Exec(ctx, updateAccountBalance, arg.Identifier, arg.AvailableBalance, arg.UpdatedAt)
 	return err
 }

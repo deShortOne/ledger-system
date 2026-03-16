@@ -7,9 +7,8 @@ import (
 )
 
 type Transaction struct {
-	Id         int64
 	Identifier uuid.UUID
-	TransferId int64
+	TransferId uuid.UUID
 	CreatedAt  time.Time
 	Status     string
 }

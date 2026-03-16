@@ -20,18 +20,20 @@ func TestCreatingLedgerEntry(t *testing.T) {
 		}
 		defer tx.Rollback(t.Context())
 
-		txn, err := repository.CreateTransaction(t.Context(), tx, dto.Transaction{
-			Identifier: uuid.New(),
-			TransferId: 1,
+		transactionId := uuid.New()
+		err = repository.CreateTransaction(t.Context(), tx, dto.Transaction{
+			Identifier: transactionId,
+			TransferId: transferId,
 			CreatedAt:  time.Now(),
 			Status:     "pending",
 		})
 		require.NoError(t, err)
 
-		entry, err := repository.CreateLedgerEntry(t.Context(), tx, dto.LedgerEntry{
-			Identifier:    uuid.New(),
-			TransactionId: txn.Id,
-			AccountId:     1,
+		entryId := uuid.New()
+		err = repository.CreateLedgerEntry(t.Context(), tx, dto.LedgerEntry{
+			Identifier:    entryId,
+			TransactionId: transactionId,
+			AccountId:     account1Id,
 			Amount:        100,
 			Direction:     "CREDIT",
 			CreatedAt:     time.Now(),
@@ -42,7 +44,7 @@ func TestCreatingLedgerEntry(t *testing.T) {
 
 		// verify row exists, etc.
 		var count int
-		err = pool.QueryRow(t.Context(), "SELECT count(*) FROM ledger.ledger_entries WHERE id=$1", entry.Id).Scan(&count)
+		err = pool.QueryRow(t.Context(), "SELECT count(*) FROM ledger.ledger_entries WHERE identifier = $1", entryId).Scan(&count)
 		require.NoError(t, err)
 		require.Equal(t, 1, count)
 
@@ -59,18 +61,20 @@ func TestCreatingLedgerEntry(t *testing.T) {
 			panic(err)
 		}
 
-		txn, err := repository.CreateTransaction(t.Context(), tx, dto.Transaction{
-			Identifier: uuid.New(),
-			TransferId: 1,
+		transactionId := uuid.New()
+		err = repository.CreateTransaction(t.Context(), tx, dto.Transaction{
+			Identifier: transactionId,
+			TransferId: transferId,
 			CreatedAt:  time.Now(),
 			Status:     "pending",
 		})
 		require.NoError(t, err)
 
-		entry, err := repository.CreateLedgerEntry(t.Context(), tx, dto.LedgerEntry{
-			Identifier:    uuid.New(),
-			TransactionId: txn.Id,
-			AccountId:     1,
+		entryId := uuid.New()
+		err = repository.CreateLedgerEntry(t.Context(), tx, dto.LedgerEntry{
+			Identifier:    entryId,
+			TransactionId: transactionId,
+			AccountId:     account1Id,
 			Amount:        100,
 			Direction:     "CREDIT",
 			CreatedAt:     time.Now(),
@@ -81,7 +85,7 @@ func TestCreatingLedgerEntry(t *testing.T) {
 
 		// verify row exists, etc.
 		var count int
-		err = pool.QueryRow(t.Context(), "SELECT count(*) FROM ledger.ledger_entries WHERE id=$1", entry.Id).Scan(&count)
+		err = pool.QueryRow(t.Context(), "SELECT count(*) FROM ledger.ledger_entries WHERE identifier = $1", entryId).Scan(&count)
 		require.NoError(t, err)
 		require.Equal(t, 0, count)
 	})
@@ -97,9 +101,10 @@ func TestCreatingTransaction(t *testing.T) {
 		}
 		defer tx.Rollback(t.Context())
 
-		newlyCreatedTransaction, err := repository.CreateTransaction(t.Context(), tx, dto.Transaction{
-			Identifier: uuid.New(),
-			TransferId: 1,
+		transactionId := uuid.New()
+		err = repository.CreateTransaction(t.Context(), tx, dto.Transaction{
+			Identifier: transactionId,
+			TransferId: transferId,
 			CreatedAt:  time.Now(),
 			Status:     "pending",
 		})
@@ -109,7 +114,7 @@ func TestCreatingTransaction(t *testing.T) {
 		require.NoError(t, err)
 
 		var count int
-		err = pool.QueryRow(t.Context(), "SELECT count(*) FROM ledger.transactions WHERE id=$1", newlyCreatedTransaction.Id).Scan(&count)
+		err = pool.QueryRow(t.Context(), "SELECT count(*) FROM ledger.transactions WHERE identifier = $1", transactionId).Scan(&count)
 		require.NoError(t, err)
 		require.Equal(t, 1, count)
 
@@ -123,9 +128,10 @@ func TestCreatingTransaction(t *testing.T) {
 			panic(err)
 		}
 
-		newlyCreatedTransaction, err := repository.CreateTransaction(t.Context(), tx, dto.Transaction{
-			Identifier: uuid.New(),
-			TransferId: 1,
+		transactionId := uuid.New()
+		err = repository.CreateTransaction(t.Context(), tx, dto.Transaction{
+			Identifier: transactionId,
+			TransferId: transferId,
 			CreatedAt:  time.Now(),
 			Status:     "pending",
 		})
@@ -135,7 +141,7 @@ func TestCreatingTransaction(t *testing.T) {
 		require.NoError(t, err)
 
 		var count int
-		err = pool.QueryRow(t.Context(), "SELECT count(*) FROM ledger.transactions WHERE id=$1", newlyCreatedTransaction.Id).Scan(&count)
+		err = pool.QueryRow(t.Context(), "SELECT count(*) FROM ledger.transactions WHERE identifier = $1", transactionId).Scan(&count)
 		require.NoError(t, err)
 		require.Equal(t, 0, count)
 	})
@@ -150,7 +156,7 @@ func TestGettingAccountBalance(t *testing.T) {
 		}
 		defer tx.Rollback(t.Context())
 
-		accountBalance, err := repository.GetAccountBalance(t.Context(), tx, 1)
+		accountBalance, err := repository.GetAccountBalance(t.Context(), tx, account1Id)
 		require.NoError(t, err)
 
 		err = tx.Commit(t.Context())
@@ -159,7 +165,7 @@ func TestGettingAccountBalance(t *testing.T) {
 		timee, err := time.Parse("2006-01-02 15:04:05 -0700", "2026-03-15 12:00:00 +0000")
 		require.NoError(t, err)
 
-		assert.Equal(t, int64(1), accountBalance.AccountId)
+		assert.Equal(t, account1Id, accountBalance.AccountId)
 		assert.Equal(t, float64(100), accountBalance.Availablebalance)
 		assert.Equal(t, timee, accountBalance.UpdatedAt)
 	})
@@ -178,7 +184,7 @@ func TestUpdatingAccountBalance(t *testing.T) {
 		timee, err := time.Parse("2006-01-02 15:04:05 -0700", "2026-02-15 12:00:00 +0000")
 		require.NoError(t, err)
 		repository.UpdateAccountBalance(t.Context(), tx, dto.AccountBalance{
-			AccountId:        1,
+			AccountId:        account1Id,
 			Availablebalance: 201,
 			UpdatedAt:        timee,
 		})
@@ -203,7 +209,7 @@ func TestUpdatingAccountBalance(t *testing.T) {
 		timee, err := time.Parse("2006-01-02 15:04:05 -0700", "2026-02-15 12:00:00 +0000")
 		require.NoError(t, err)
 		repository.UpdateAccountBalance(t.Context(), tx, dto.AccountBalance{
-			AccountId:        2,
+			AccountId:        account2Id,
 			Availablebalance: 201,
 			UpdatedAt:        timee,
 		})

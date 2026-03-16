@@ -27,16 +27,11 @@ func NewUserPostgresRepository(pool *pgxpool.Pool) *UserPostgresRepository {
 }
 
 func (r *UserPostgresRepository) CreateUser(ctx context.Context, user dto.User) error {
-	_, err := r.queries.CreateUser(ctx, userdb.CreateUserParams{
+	return r.queries.CreateUser(ctx, userdb.CreateUserParams{
 		Identifier: user.Identifier,
 		FirstName:  user.FirstName,
 		LastName:   user.LastName,
 	})
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (r *UserPostgresRepository) GetUser(ctx context.Context, identifier uuid.UUID) (dto.User, error) {

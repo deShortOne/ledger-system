@@ -1,15 +1,19 @@
 package contracts
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type AddToLedgerRequest struct {
-	TransferId int64
+	TransferId uuid.UUID
 	CreatedAt  time.Time
 	Entries    []LedgerEntries
 }
 
 type LedgerEntries struct {
-	AccountId int64
+	AccountId uuid.UUID
 	Amount    float64
 	Direction LedgerDirection
 }

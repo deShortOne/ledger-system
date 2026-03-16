@@ -1,9 +1,13 @@
 package dto
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type AccountBalance struct {
-	AccountId        int64
+	AccountId        uuid.UUID
 	Availablebalance float64
 	UpdatedAt        time.Time
 }

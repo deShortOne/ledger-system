@@ -6,6 +6,7 @@ import (
 
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
 	"github.com/deshortone/ledger-system/internal/ledger/repository/postgres/ledgerdb"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -24,45 +25,33 @@ func NewLedgerPostgresRepository(pool *pgxpool.Pool) *LedgerPostgresRepository {
 	}
 }
 
-func (r *LedgerPostgresRepository) CreateLedgerEntry(ctx context.Context, tx pgx.Tx, record dto.LedgerEntry) (dto.LedgerEntry, error) {
+func (r *LedgerPostgresRepository) CreateLedgerEntry(ctx context.Context, tx pgx.Tx, record dto.LedgerEntry) error {
 	queries := r.queries.WithTx(tx)
 	balance, err := Float64ToNumeric(record.Amount)
 	if err != nil {
-		return dto.LedgerEntry{}, err
+		return err
 	}
-	ledgerId, err := queries.CreateLedgerEntry(ctx, ledgerdb.CreateLedgerEntryParams{
-		Identifier:    record.Identifier,
-		TransactionID: record.TransactionId,
-		AccountID:     record.AccountId,
-		Amount:        balance,
-		Direction:     ledgerdb.LedgerEntryDirection(record.Direction),
-		CreatedAt:     record.CreatedAt,
+	return queries.CreateLedgerEntry(ctx, ledgerdb.CreateLedgerEntryParams{
+		Identifier:   record.Identifier,    // yikes
+		Identifier_2: record.TransactionId, // yikes_2
+		Identifier_3: record.AccountId,     // yikes_3
+		Amount:       balance,
+		Direction:    ledgerdb.LedgerEntryDirection(record.Direction),
+		CreatedAt:    record.CreatedAt,
 	})
-	if err != nil {
-		return dto.LedgerEntry{}, err
-	}
-
-	record.Id = ledgerId
-	return record, nil
 }
 
-func (r *LedgerPostgresRepository) CreateTransaction(ctx context.Context, tx pgx.Tx, record dto.Transaction) (dto.Transaction, error) {
+func (r *LedgerPostgresRepository) CreateTransaction(ctx context.Context, tx pgx.Tx, record dto.Transaction) error {
 	queries := r.queries.WithTx(tx)
-	transactionId, err := queries.CreateTransaction(ctx, ledgerdb.CreateTransactionParams{
-		Identifier: record.Identifier,
-		TransferID: record.TransferId,
-		CreatedAt:  record.CreatedAt,
-		Status:     record.Status,
+	return queries.CreateTransaction(ctx, ledgerdb.CreateTransactionParams{
+		Identifier:   record.Identifier,
+		Identifier_2: record.TransferId,
+		CreatedAt:    record.CreatedAt,
+		Status:       record.Status,
 	})
-	if err != nil {
-		return dto.Transaction{}, err
-	}
-
-	record.Id = transactionId
-	return record, nil
 }
 
-func (r *LedgerPostgresRepository) GetAccountBalance(ctx context.Context, tx pgx.Tx, accountId int64) (dto.AccountBalance, error) {
+func (r *LedgerPostgresRepository) GetAccountBalance(ctx context.Context, tx pgx.Tx, accountId uuid.UUID) (dto.AccountBalance, error) {
 	queries := r.queries.WithTx(tx)
 	accountBalanceRecord, err := queries.GetAccountBalanceAndLock(ctx, accountId)
 	if err != nil {
@@ -88,7 +77,7 @@ func (r *LedgerPostgresRepository) UpdateAccountBalance(ctx context.Context, tx 
 		return err
 	}
 	return queries.UpdateAccountBalance(ctx, ledgerdb.UpdateAccountBalanceParams{
-		AccountID:        record.AccountId,
+		Identifier:       record.AccountId,
 		AvailableBalance: balance,
 		UpdatedAt:        record.UpdatedAt,
 	})

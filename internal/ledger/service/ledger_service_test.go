@@ -7,6 +7,7 @@ import (
 	"github.com/deshortone/ledger-system/internal/ledger/contracts"
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
 	"github.com/deshortone/ledger-system/internal/ledger/repository/memory"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,17 +18,19 @@ func TestAddToLedger(t *testing.T) {
 		t.Parallel()
 		var tx pgx.Tx
 
+		account1Id := uuid.New()
+		account2Id := uuid.New()
 		timeAccount1, err := time.Parse("2006-01-02 15:04:05 -0700", "2026-02-15 12:00:00 +0000")
 		require.NoError(t, err)
 		repository := memory.NewLedgerInMemoryRepository()
 		err = repository.CreateAccountBalance(t.Context(), tx, dto.AccountBalance{
-			AccountId:        1,
+			AccountId:        account1Id,
 			Availablebalance: 100,
 			UpdatedAt:        timeAccount1,
 		})
 		require.NoError(t, err)
 		err = repository.CreateAccountBalance(t.Context(), tx, dto.AccountBalance{
-			AccountId:        2,
+			AccountId:        account2Id,
 			Availablebalance: 100,
 			UpdatedAt:        timeAccount1,
 		})
@@ -37,16 +40,16 @@ func TestAddToLedger(t *testing.T) {
 
 		timeOfTransfer, err := time.Parse("2006-01-02 15:04:05 -0700", "2026-03-15 12:00:00 +0000")
 		err = service.AddToLedger(t.Context(), tx, contracts.AddToLedgerRequest{
-			TransferId: 1,
+			TransferId: uuid.New(),
 			CreatedAt:  timeOfTransfer,
 			Entries: []contracts.LedgerEntries{
 				{
-					AccountId: 1,
+					AccountId: account1Id,
 					Amount:    10,
 					Direction: contracts.CREDIT,
 				},
 				{
-					AccountId: 2,
+					AccountId: account2Id,
 					Amount:    10,
 					Direction: contracts.DEBIT,
 				},
@@ -55,9 +58,9 @@ func TestAddToLedger(t *testing.T) {
 
 		assert.NoError(t, err)
 
-		account1, err := repository.GetAccountBalance(t.Context(), tx, 1)
+		account1, err := repository.GetAccountBalance(t.Context(), tx, account1Id)
 		require.NoError(t, err)
-		account2, err := repository.GetAccountBalance(t.Context(), tx, 2)
+		account2, err := repository.GetAccountBalance(t.Context(), tx, account2Id)
 		require.NoError(t, err)
 		assert.Equal(t, float64(110), account1.Availablebalance)
 		assert.Equal(t, timeOfTransfer, account1.UpdatedAt)
@@ -69,17 +72,19 @@ func TestAddToLedger(t *testing.T) {
 		t.Parallel()
 		var tx pgx.Tx
 
+		account1Id := uuid.New()
+		account2Id := uuid.New()
 		timeAccount1, err := time.Parse("2006-01-02 15:04:05 -0700", "2026-02-15 12:00:00 +0000")
 		require.NoError(t, err)
 		repository := memory.NewLedgerInMemoryRepository()
 		err = repository.CreateAccountBalance(t.Context(), tx, dto.AccountBalance{
-			AccountId:        1,
+			AccountId:        account1Id,
 			Availablebalance: 100,
 			UpdatedAt:        timeAccount1,
 		})
 		require.NoError(t, err)
 		err = repository.CreateAccountBalance(t.Context(), tx, dto.AccountBalance{
-			AccountId:        2,
+			AccountId:        account2Id,
 			Availablebalance: 100,
 			UpdatedAt:        timeAccount1,
 		})
@@ -89,16 +94,16 @@ func TestAddToLedger(t *testing.T) {
 
 		timeOfTransfer, err := time.Parse("2006-01-02 15:04:05 -0700", "2026-03-15 12:00:00 +0000")
 		err = service.AddToLedger(t.Context(), tx, contracts.AddToLedgerRequest{
-			TransferId: 1,
+			TransferId: uuid.New(),
 			CreatedAt:  timeOfTransfer,
 			Entries: []contracts.LedgerEntries{
 				{
-					AccountId: 1,
+					AccountId: account1Id,
 					Amount:    10,
 					Direction: contracts.CREDIT,
 				},
 				{
-					AccountId: 2,
+					AccountId: account2Id,
 					Amount:    20,
 					Direction: contracts.DEBIT,
 				},
@@ -112,17 +117,19 @@ func TestAddToLedger(t *testing.T) {
 		t.Parallel()
 		var tx pgx.Tx
 
+		account1Id := uuid.New()
+		account2Id := uuid.New()
 		timeAccount1, err := time.Parse("2006-01-02 15:04:05 -0700", "2026-02-15 12:00:00 +0000")
 		require.NoError(t, err)
 		repository := memory.NewLedgerInMemoryRepository()
 		err = repository.CreateAccountBalance(t.Context(), tx, dto.AccountBalance{
-			AccountId:        1,
+			AccountId:        account1Id,
 			Availablebalance: 100,
 			UpdatedAt:        timeAccount1,
 		})
 		require.NoError(t, err)
 		err = repository.CreateAccountBalance(t.Context(), tx, dto.AccountBalance{
-			AccountId:        2,
+			AccountId:        account2Id,
 			Availablebalance: 5,
 			UpdatedAt:        timeAccount1,
 		})
@@ -132,16 +139,16 @@ func TestAddToLedger(t *testing.T) {
 
 		timeOfTransfer, err := time.Parse("2006-01-02 15:04:05 -0700", "2026-03-15 12:00:00 +0000")
 		err = service.AddToLedger(t.Context(), tx, contracts.AddToLedgerRequest{
-			TransferId: 1,
+			TransferId: uuid.New(),
 			CreatedAt:  timeOfTransfer,
 			Entries: []contracts.LedgerEntries{
 				{
-					AccountId: 1,
+					AccountId: account1Id,
 					Amount:    10,
 					Direction: contracts.CREDIT,
 				},
 				{
-					AccountId: 2,
+					AccountId: account2Id,
 					Amount:    10,
 					Direction: contracts.DEBIT,
 				},

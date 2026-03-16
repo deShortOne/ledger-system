@@ -15,6 +15,10 @@ import (
 var (
 	dbURL string
 	pool  *pgxpool.Pool
+
+	account1Id uuid.UUID
+	account2Id uuid.UUID
+	transferId uuid.UUID
 )
 
 func TestMain(m *testing.M) {
@@ -48,21 +52,24 @@ func ledgerDbGlobalSeed(ctx context.Context) {
 	}
 
 	// add accounts, only id and identifier are different here
+	account1Id = uuid.New()
+	account2Id = uuid.New()
 	_, err = pool.Exec(ctx, `
         INSERT INTO identity.accounts (id, identifier, user_id, created_at, account_type, currency, status)
 		OVERRIDING SYSTEM VALUE
         VALUES ($1, $2, $3,  NOW(), $4, $5, $6), ($7, $8, $3, NOW(), $4, $5, $6);
-    `, 1, uuid.New(), 1, "account type", "GBP", "available", 2, uuid.New())
+    `, 1, account1Id, 1, "account type", "GBP", "available", 2, account2Id)
 	if err != nil {
 		panic(err)
 	}
 
 	// add transfers
+	transferId = uuid.New()
 	_, err = pool.Exec(ctx, `
         INSERT INTO transfer.transfers (id, identifier, from_account_id, to_account_id, amount, status, created_at)
 		OVERRIDING SYSTEM VALUE
         VALUES ($1, $2, $3, $4, $5, $6, NOW());
-    `, 1, uuid.New(), 1, 2, 100, "posted")
+    `, 1, transferId, 1, 2, 100, "posted")
 	if err != nil {
 		panic(err)
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -22,17 +23,17 @@ func NewLedgerInMemoryRepository() *LedgerInMemoryRepository {
 	}
 }
 
-func (r *LedgerInMemoryRepository) CreateLedgerEntry(ctx context.Context, tx pgx.Tx, record dto.LedgerEntry) (dto.LedgerEntry, error) {
+func (r *LedgerInMemoryRepository) CreateLedgerEntry(ctx context.Context, tx pgx.Tx, record dto.LedgerEntry) error {
 	r.ledgerEntries = append(r.ledgerEntries, record)
-	return record, nil
+	return nil
 }
 
-func (r *LedgerInMemoryRepository) CreateTransaction(ctx context.Context, tx pgx.Tx, record dto.Transaction) (dto.Transaction, error) {
+func (r *LedgerInMemoryRepository) CreateTransaction(ctx context.Context, tx pgx.Tx, record dto.Transaction) error {
 	r.transactions = append(r.transactions, record)
-	return record, nil
+	return nil
 }
 
-func (r *LedgerInMemoryRepository) GetAccountBalance(ctx context.Context, tx pgx.Tx, accountId int64) (dto.AccountBalance, error) {
+func (r *LedgerInMemoryRepository) GetAccountBalance(ctx context.Context, tx pgx.Tx, accountId uuid.UUID) (dto.AccountBalance, error) {
 	for _, accountBalance := range r.accountBalances {
 		if accountBalance.AccountId == accountId {
 			return accountBalance, nil

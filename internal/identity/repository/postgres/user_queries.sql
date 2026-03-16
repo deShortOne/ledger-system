@@ -1,12 +1,11 @@
--- name: CreateUser :one
+-- name: CreateUser :exec
 INSERT INTO identity.users (
     identifier,
     first_name,
     last_name
 ) VALUES (
     $1, $2, $3
-)
-RETURNING id;
+);
 
 -- name: GetUser :one
 SELECT id, first_name, last_name
