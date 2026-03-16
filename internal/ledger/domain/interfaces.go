@@ -11,6 +11,10 @@ import (
 type LedgerRepository interface {
 	CreateLedgerEntry(ctx context.Context, tx pgx.Tx, record dto.LedgerEntry) error
 	CreateTransaction(ctx context.Context, tx pgx.Tx, record dto.Transaction) error
+}
+
+type AccountBalanceRepository interface {
+	CreateAccountBalance(ctx context.Context, tx pgx.Tx, record dto.AccountBalance) error
 	GetAccountBalance(ctx context.Context, tx pgx.Tx, accountId uuid.UUID) (dto.AccountBalance, error)
 	UpdateAccountBalance(ctx context.Context, tx pgx.Tx, record dto.AccountBalance) error
 }

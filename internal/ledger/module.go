@@ -12,8 +12,9 @@ type LedgerModule struct {
 
 func SetupLedgerModule(pool *pgxpool.Pool) LedgerModule {
 	ledgerRepository := postgres.NewLedgerPostgresRepository(pool)
+	accountBalanceRepository := postgres.NewAccountBalancePostgresRepository(pool)
 
 	return LedgerModule{
-		LedgerService: service.NewLedgerService(ledgerRepository),
+		LedgerService: service.NewLedgerService(ledgerRepository, accountBalanceRepository),
 	}
 }

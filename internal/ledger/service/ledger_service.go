@@ -11,12 +11,17 @@ import (
 )
 
 type LedgerService struct {
-	ledgerRepository domain.LedgerRepository
+	ledgerRepository         domain.LedgerRepository
+	accountBalanceRepository domain.AccountBalanceRepository
 }
 
-func NewLedgerService(ledgerRepository domain.LedgerRepository) LedgerService {
+func NewLedgerService(
+	ledgerRepository domain.LedgerRepository,
+	accountBalanceRepository domain.AccountBalanceRepository,
+) LedgerService {
 	return LedgerService{
-		ledgerRepository: ledgerRepository,
+		ledgerRepository:         ledgerRepository,
+		accountBalanceRepository: accountBalanceRepository,
 	}
 }
 
@@ -34,7 +39,7 @@ func (s LedgerService) AddToLedger(ctx context.Context, tx pgx.Tx, request contr
 	}
 
 	for _, entry := range request.Entries {
-		accountBalance, err := s.ledgerRepository.GetAccountBalance(ctx, tx, entry.AccountId)
+		accountBalance, err := s.accountBalanceRepository.GetAccountBalance(ctx, tx, entry.AccountId)
 		if err != nil {
 			return err
 		}
@@ -64,7 +69,7 @@ func (s LedgerService) AddToLedger(ctx context.Context, tx pgx.Tx, request contr
 			return err
 		}
 
-		if err = s.ledgerRepository.UpdateAccountBalance(ctx, tx, accountBalance); err != nil {
+		if err = s.accountBalanceRepository.UpdateAccountBalance(ctx, tx, accountBalance); err != nil {
 			return err
 		}
 	}

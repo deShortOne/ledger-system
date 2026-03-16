@@ -22,3 +22,11 @@ sql:
         package: ledgerdb
         out: ./ledgerdb/
         sql_package: pgx/v5
+  - schema: ../../../../migration/postgres/
+    queries: account_balance_queries.sql
+    engine: postgresql
+    gen:
+      go:
+        package: accountbalance
+        out: ./accountbalance/
+        sql_package: pgx/v5
