@@ -1,0 +1,24 @@
+version: "2"
+servers: []
+
+overrides:
+  go:
+    overrides:
+      - db_type: "uuid"
+        engine: "postgresql"
+        go_type:
+          import: "github.com/google/uuid"
+          type: "UUID"
+      - db_type: "pg_catalog.timestamptz"
+        engine: "postgresql"
+        go_type: "time.Time"
+
+sql:
+  - schema: ../../../../migration/postgres/
+    queries: queries.sql
+    engine: postgresql
+    gen:
+      go:
+        package: ledgerdb
+        out: ./ledgerdb/
+        sql_package: pgx/v5

@@ -1,0 +1,32 @@
+version: "2"
+servers: []
+
+overrides:
+  go:
+    overrides:
+      - db_type: "uuid"
+        engine: "postgresql"
+        go_type:
+          import: "github.com/google/uuid"
+          type: "UUID"
+      - db_type: "pg_catalog.timestamptz"
+        engine: "postgresql"
+        go_type: "time.Time"
+
+sql:
+  - schema: ../../../../migration/postgres/
+    queries: user_queries.sql
+    engine: postgresql
+    gen:
+      go:
+        package: userdb
+        out: ./user_db/
+        sql_package: pgx/v5
+  - schema: ../../../../migration/postgres/
+    queries: account_queries.sql
+    engine: postgresql
+    gen:
+      go:
+        package: accountdb
+        out: ./account_db/
+        sql_package: pgx/v5
