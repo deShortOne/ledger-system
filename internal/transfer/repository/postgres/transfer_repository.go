@@ -4,16 +4,16 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/deshortone/ledger-system/internal/platform/database_base"
 	"github.com/deshortone/ledger-system/internal/transfer/dto"
 	"github.com/deshortone/ledger-system/internal/transfer/repository/postgres/transferdb"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type TransferPostgresRepository struct {
-	queries *transferdb.Queries
+	database_base.BaseRepo
 }
 
 func NewTransferPostgresRepository(pool *pgxpool.Pool) TransferPostgresRepository {
@@ -21,12 +21,13 @@ func NewTransferPostgresRepository(pool *pgxpool.Pool) TransferPostgresRepositor
 		panic("pool cannot be nil")
 	}
 	return TransferPostgresRepository{
-		queries: transferdb.New(pool),
+		BaseRepo: database_base.NewBaseRepo(pool),
 	}
 }
 
-func (r TransferPostgresRepository) CreateTransfer(ctx context.Context, tx pgx.Tx, request dto.NewTransfer) error {
-	queries := r.queries.WithTx(tx)
+func (r TransferPostgresRepository) CreateTransfer(ctx context.Context, request dto.NewTransfer) error {
+	executor := r.GetExecutor(ctx)
+	queries := transferdb.New(executor)
 
 	return queries.CreateTransfer(ctx, transferdb.CreateTransferParams{
 		Identifier:   request.Identifier,
@@ -41,7 +42,10 @@ func (r TransferPostgresRepository) CreateTransferRequest(ctx context.Context, r
 		return err
 	}
 
-	return r.queries.CreateTransferRequest(ctx, transferdb.CreateTransferRequestParams{
+	executor := r.GetExecutor(ctx)
+	queries := transferdb.New(executor)
+
+	return queries.CreateTransferRequest(ctx, transferdb.CreateTransferRequestParams{
 		Identifier:   request.Identifier,
 		Identifier_2: request.FromAccountId,
 		Identifier_3: request.ToAccountId,
@@ -51,8 +55,10 @@ func (r TransferPostgresRepository) CreateTransferRequest(ctx context.Context, r
 	})
 }
 
-func (r TransferPostgresRepository) UpdateTransferRequestStatusWithTx(ctx context.Context, tx pgx.Tx, id uuid.UUID, status string) error {
-	queries := r.queries.WithTx(tx)
+func (r TransferPostgresRepository) UpdateTransferRequestStatusWithTx(ctx context.Context, id uuid.UUID, status string) error {
+	executor := r.GetExecutor(ctx)
+	queries := transferdb.New(executor)
+
 	return queries.UpdateTransferRequestStatus(ctx, transferdb.UpdateTransferRequestStatusParams{
 		Identifier:    id,
 		Status:        status,
@@ -61,7 +67,10 @@ func (r TransferPostgresRepository) UpdateTransferRequestStatusWithTx(ctx contex
 }
 
 func (r TransferPostgresRepository) UpdateTransferRequestStatusWithFailure(ctx context.Context, id uuid.UUID, status, failure string) error {
-	return r.queries.UpdateTransferRequestStatus(ctx, transferdb.UpdateTransferRequestStatusParams{
+	executor := r.GetExecutor(ctx)
+	queries := transferdb.New(executor)
+
+	return queries.UpdateTransferRequestStatus(ctx, transferdb.UpdateTransferRequestStatusParams{
 		Identifier:    id,
 		Status:        status,
 		FailureReason: pgtype.Text{String: failure, Valid: true},

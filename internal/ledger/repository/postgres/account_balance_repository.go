@@ -6,13 +6,13 @@ import (
 
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
 	"github.com/deshortone/ledger-system/internal/ledger/repository/postgres/accountbalance"
+	"github.com/deshortone/ledger-system/internal/platform/database_base"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type AccountBalancePostgresRepository struct {
-	queries *accountbalance.Queries
+	database_base.BaseRepo
 }
 
 func NewAccountBalancePostgresRepository(pool *pgxpool.Pool) *AccountBalancePostgresRepository {
@@ -20,24 +20,29 @@ func NewAccountBalancePostgresRepository(pool *pgxpool.Pool) *AccountBalancePost
 		panic("pool cannot be nil")
 	}
 	return &AccountBalancePostgresRepository{
-		queries: accountbalance.New(pool),
+		BaseRepo: database_base.NewBaseRepo(pool),
 	}
 }
 
 func (r *AccountBalancePostgresRepository) CreateNewAccountBalance(ctx context.Context, accountId uuid.UUID, createdAt time.Time) error {
+	executor := r.GetExecutor(ctx)
+	queries := accountbalance.New(executor)
+
 	balance, err := Float64ToNumeric(0)
 	if err != nil {
 		return err
 	}
-	return r.queries.CreateAccountBalance(ctx, accountbalance.CreateAccountBalanceParams{
+	return queries.CreateAccountBalance(ctx, accountbalance.CreateAccountBalanceParams{
 		Identifier:       accountId,
 		AvailableBalance: balance,
 		UpdatedAt:        createdAt,
 	})
 }
 
-func (r *AccountBalancePostgresRepository) GetAccountBalance(ctx context.Context, tx pgx.Tx, accountId uuid.UUID) (dto.AccountBalance, error) {
-	queries := r.queries.WithTx(tx)
+func (r *AccountBalancePostgresRepository) GetAccountBalance(ctx context.Context, accountId uuid.UUID) (dto.AccountBalance, error) {
+	executor := r.GetExecutor(ctx)
+	queries := accountbalance.New(executor)
+
 	accountBalanceRecord, err := queries.GetAccountBalanceAndLock(ctx, accountId)
 	if err != nil {
 		return dto.AccountBalance{}, err
@@ -55,8 +60,10 @@ func (r *AccountBalancePostgresRepository) GetAccountBalance(ctx context.Context
 	}, nil
 }
 
-func (r *AccountBalancePostgresRepository) UpdateAccountBalance(ctx context.Context, tx pgx.Tx, record dto.AccountBalance) error {
-	queries := r.queries.WithTx(tx)
+func (r *AccountBalancePostgresRepository) UpdateAccountBalance(ctx context.Context, record dto.AccountBalance) error {
+	executor := r.GetExecutor(ctx)
+	queries := accountbalance.New(executor)
+
 	balance, err := Float64ToNumeric(record.Availablebalance)
 	if err != nil {
 		return err

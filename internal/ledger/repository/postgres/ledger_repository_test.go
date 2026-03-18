@@ -1,10 +1,13 @@
 package postgres
 
 import (
+	"context"
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
+	"github.com/deshortone/ledger-system/internal/platform/database_base"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
@@ -13,33 +16,32 @@ func TestCreatingLedgerEntry(t *testing.T) {
 	repository := NewLedgerPostgresRepository(pool)
 
 	t.Run("when transaction is not aborted", func(t *testing.T) {
-		tx, err := pool.Begin(t.Context())
-		if err != nil {
-			panic(err)
-		}
-		defer tx.Rollback(t.Context())
+		var err error
 
+		uow := database_base.NewPgUnitOfWork(pool)
 		transactionId := uuid.New()
-		err = repository.CreateTransaction(t.Context(), tx, dto.Transaction{
-			Identifier: transactionId,
-			TransferId: transferId,
-			CreatedAt:  time.Now(),
-			Status:     "pending",
+		err = uow.Do(t.Context(), func(ctx context.Context) error {
+			return repository.CreateTransaction(ctx, dto.Transaction{
+				Identifier: transactionId,
+				TransferId: transferId,
+				CreatedAt:  time.Now(),
+				Status:     "pending",
+			})
 		})
 		require.NoError(t, err)
 
 		entryId := uuid.New()
-		err = repository.CreateLedgerEntry(t.Context(), tx, dto.LedgerEntry{
-			Identifier:    entryId,
-			TransactionId: transactionId,
-			AccountId:     account1Id,
-			Amount:        100,
-			Direction:     "CREDIT",
-			CreatedAt:     time.Now(),
+		err = uow.Do(t.Context(), func(ctx context.Context) error {
+			return repository.CreateLedgerEntry(ctx, dto.LedgerEntry{
+				Identifier:    entryId,
+				TransactionId: transactionId,
+				AccountId:     account1Id,
+				Amount:        100,
+				Direction:     "CREDIT",
+				CreatedAt:     time.Now(),
+			})
 		})
 		require.NoError(t, err)
-
-		require.NoError(t, tx.Commit(t.Context()))
 
 		// verify row exists, etc.
 		var count int
@@ -55,32 +57,33 @@ func TestCreatingLedgerEntry(t *testing.T) {
 	})
 
 	t.Run("when transaction is aborted", func(t *testing.T) {
-		tx, err := pool.Begin(t.Context())
-		if err != nil {
-			panic(err)
-		}
+		var err error
 
 		transactionId := uuid.New()
-		err = repository.CreateTransaction(t.Context(), tx, dto.Transaction{
-			Identifier: transactionId,
-			TransferId: transferId,
-			CreatedAt:  time.Now(),
-			Status:     "pending",
-		})
-		require.NoError(t, err)
-
 		entryId := uuid.New()
-		err = repository.CreateLedgerEntry(t.Context(), tx, dto.LedgerEntry{
-			Identifier:    entryId,
-			TransactionId: transactionId,
-			AccountId:     account1Id,
-			Amount:        100,
-			Direction:     "CREDIT",
-			CreatedAt:     time.Now(),
-		})
-		require.NoError(t, err)
+		uow := database_base.NewPgUnitOfWork(pool)
+		err = uow.Do(t.Context(), func(ctx context.Context) error {
+			err = repository.CreateTransaction(ctx, dto.Transaction{
+				Identifier: transactionId,
+				TransferId: transferId,
+				CreatedAt:  time.Now(),
+				Status:     "pending",
+			})
+			require.NoError(t, err)
 
-		require.NoError(t, tx.Rollback(t.Context()))
+			err = repository.CreateLedgerEntry(ctx, dto.LedgerEntry{
+				Identifier:    entryId,
+				TransactionId: transactionId,
+				AccountId:     account1Id,
+				Amount:        100,
+				Direction:     "CREDIT",
+				CreatedAt:     time.Now(),
+			})
+			require.NoError(t, err)
+
+			return errors.New("something to ensure uow rolls this back")
+		})
+		require.Error(t, err)
 
 		// verify row exists, etc.
 		var count int
@@ -91,25 +94,21 @@ func TestCreatingLedgerEntry(t *testing.T) {
 }
 
 func TestCreatingTransaction(t *testing.T) {
+	var err error
 	repository := NewLedgerPostgresRepository(pool)
 
 	t.Run("when transaction is not aborted", func(t *testing.T) {
-		tx, err := pool.Begin(t.Context())
-		if err != nil {
-			panic(err)
-		}
-		defer tx.Rollback(t.Context())
-
 		transactionId := uuid.New()
-		err = repository.CreateTransaction(t.Context(), tx, dto.Transaction{
-			Identifier: transactionId,
-			TransferId: transferId,
-			CreatedAt:  time.Now(),
-			Status:     "pending",
-		})
-		require.NoError(t, err)
 
-		err = tx.Commit(t.Context())
+		uow := database_base.NewPgUnitOfWork(pool)
+		err = uow.Do(t.Context(), func(ctx context.Context) error {
+			return repository.CreateTransaction(ctx, dto.Transaction{
+				Identifier: transactionId,
+				TransferId: transferId,
+				CreatedAt:  time.Now(),
+				Status:     "pending",
+			})
+		})
 		require.NoError(t, err)
 
 		var count int
@@ -122,22 +121,20 @@ func TestCreatingTransaction(t *testing.T) {
 	})
 
 	t.Run("when transaction is aborted", func(t *testing.T) {
-		tx, err := pool.Begin(t.Context())
-		if err != nil {
-			panic(err)
-		}
-
 		transactionId := uuid.New()
-		err = repository.CreateTransaction(t.Context(), tx, dto.Transaction{
-			Identifier: transactionId,
-			TransferId: transferId,
-			CreatedAt:  time.Now(),
-			Status:     "pending",
-		})
-		require.NoError(t, err)
+		uow := database_base.NewPgUnitOfWork(pool)
+		err = uow.Do(t.Context(), func(ctx context.Context) error {
+			err = repository.CreateTransaction(ctx, dto.Transaction{
+				Identifier: transactionId,
+				TransferId: transferId,
+				CreatedAt:  time.Now(),
+				Status:     "pending",
+			})
+			require.NoError(t, err)
 
-		err = tx.Rollback(t.Context())
-		require.NoError(t, err)
+			return errors.New("throw fake")
+		})
+		require.Error(t, err)
 
 		var count int
 		err = pool.QueryRow(t.Context(), "SELECT count(*) FROM ledger.transactions WHERE identifier = $1", transactionId).Scan(&count)

@@ -6,16 +6,15 @@ import (
 
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
 
 type LedgerRepository interface {
-	CreateLedgerEntry(ctx context.Context, tx pgx.Tx, record dto.LedgerEntry) error
-	CreateTransaction(ctx context.Context, tx pgx.Tx, record dto.Transaction) error
+	CreateLedgerEntry(ctx context.Context, record dto.LedgerEntry) error
+	CreateTransaction(ctx context.Context, record dto.Transaction) error
 }
 
 type AccountBalanceRepository interface {
 	CreateNewAccountBalance(ctx context.Context, accountId uuid.UUID, updatedAt time.Time) error
-	GetAccountBalance(ctx context.Context, tx pgx.Tx, accountId uuid.UUID) (dto.AccountBalance, error)
-	UpdateAccountBalance(ctx context.Context, tx pgx.Tx, record dto.AccountBalance) error
+	GetAccountBalance(ctx context.Context, accountId uuid.UUID) (dto.AccountBalance, error)
+	UpdateAccountBalance(ctx context.Context, record dto.AccountBalance) error
 }

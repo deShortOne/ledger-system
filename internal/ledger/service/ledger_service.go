@@ -8,7 +8,6 @@ import (
 	"github.com/deshortone/ledger-system/internal/ledger/domain"
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
 
 type LedgerService struct {
@@ -26,10 +25,10 @@ func NewLedgerService(
 	}
 }
 
-func (s LedgerService) AddToLedger(ctx context.Context, tx pgx.Tx, request contracts.AddToLedgerRequest) error {
+func (s LedgerService) AddToLedger(ctx context.Context, request contracts.AddToLedgerRequest) error {
 	var sumOfMonies float64
 	transactionId := uuid.New()
-	err := s.ledgerRepository.CreateTransaction(ctx, tx, dto.Transaction{
+	err := s.ledgerRepository.CreateTransaction(ctx, dto.Transaction{
 		Identifier: uuid.New(),
 		TransferId: request.TransferId,
 		CreatedAt:  request.CreatedAt,
@@ -40,7 +39,7 @@ func (s LedgerService) AddToLedger(ctx context.Context, tx pgx.Tx, request contr
 	}
 
 	for _, entry := range request.Entries {
-		accountBalance, err := s.accountBalanceRepository.GetAccountBalance(ctx, tx, entry.AccountId)
+		accountBalance, err := s.accountBalanceRepository.GetAccountBalance(ctx, entry.AccountId)
 		if err != nil {
 			return err
 		}
@@ -58,7 +57,7 @@ func (s LedgerService) AddToLedger(ctx context.Context, tx pgx.Tx, request contr
 		}
 		accountBalance.UpdatedAt = request.CreatedAt
 
-		err = s.ledgerRepository.CreateLedgerEntry(ctx, tx, dto.LedgerEntry{
+		err = s.ledgerRepository.CreateLedgerEntry(ctx, dto.LedgerEntry{
 			Identifier:    uuid.New(),
 			TransactionId: transactionId,
 			AccountId:     entry.AccountId,
@@ -70,7 +69,7 @@ func (s LedgerService) AddToLedger(ctx context.Context, tx pgx.Tx, request contr
 			return err
 		}
 
-		if err = s.accountBalanceRepository.UpdateAccountBalance(ctx, tx, accountBalance); err != nil {
+		if err = s.accountBalanceRepository.UpdateAccountBalance(ctx, accountBalance); err != nil {
 			return err
 		}
 	}

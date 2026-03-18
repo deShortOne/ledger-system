@@ -6,13 +6,13 @@ import (
 
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
 	"github.com/deshortone/ledger-system/internal/ledger/repository/postgres/ledgerdb"
-	"github.com/jackc/pgx/v5"
+	"github.com/deshortone/ledger-system/internal/platform/database_base"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type LedgerPostgresRepository struct {
-	queries *ledgerdb.Queries
+	database_base.BaseRepo
 }
 
 func NewLedgerPostgresRepository(pool *pgxpool.Pool) *LedgerPostgresRepository {
@@ -20,12 +20,14 @@ func NewLedgerPostgresRepository(pool *pgxpool.Pool) *LedgerPostgresRepository {
 		panic("pool cannot be nil")
 	}
 	return &LedgerPostgresRepository{
-		queries: ledgerdb.New(pool),
+		BaseRepo: database_base.NewBaseRepo(pool),
 	}
 }
 
-func (r *LedgerPostgresRepository) CreateLedgerEntry(ctx context.Context, tx pgx.Tx, record dto.LedgerEntry) error {
-	queries := r.queries.WithTx(tx)
+func (r *LedgerPostgresRepository) CreateLedgerEntry(ctx context.Context, record dto.LedgerEntry) error {
+	executor := r.GetExecutor(ctx)
+	queries := ledgerdb.New(executor)
+
 	balance, err := Float64ToNumeric(record.Amount)
 	if err != nil {
 		return err
@@ -40,8 +42,10 @@ func (r *LedgerPostgresRepository) CreateLedgerEntry(ctx context.Context, tx pgx
 	})
 }
 
-func (r *LedgerPostgresRepository) CreateTransaction(ctx context.Context, tx pgx.Tx, record dto.Transaction) error {
-	queries := r.queries.WithTx(tx)
+func (r *LedgerPostgresRepository) CreateTransaction(ctx context.Context, record dto.Transaction) error {
+	executor := r.GetExecutor(ctx)
+	queries := ledgerdb.New(executor)
+
 	return queries.CreateTransaction(ctx, ledgerdb.CreateTransactionParams{
 		Identifier:   record.Identifier,
 		Identifier_2: record.TransferId,

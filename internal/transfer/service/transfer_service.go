@@ -6,7 +6,6 @@ import (
 	"github.com/deshortone/ledger-system/internal/transfer/domain"
 	"github.com/deshortone/ledger-system/internal/transfer/dto"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
 
 type TransferService struct {
@@ -18,9 +17,9 @@ func NewTransferService(repository domain.TransferRepository) TransferService {
 		repository: repository,
 	}
 }
-func (t *TransferService) CreateTransfer(ctx context.Context, tx pgx.Tx, transferRequestId uuid.UUID, executedAt dto.CustomTime) (uuid.UUID, error) {
+func (t *TransferService) CreateTransfer(ctx context.Context, transferRequestId uuid.UUID, executedAt dto.CustomTime) (uuid.UUID, error) {
 	transferId := uuid.New()
-	err := t.repository.CreateTransfer(ctx, tx, dto.NewTransfer{
+	err := t.repository.CreateTransfer(ctx, dto.NewTransfer{
 		Identifier:        transferId,
 		TransferRequestId: transferRequestId,
 		ExecutedAt:        executedAt,
@@ -49,8 +48,8 @@ func (t *TransferService) CreateTransferRequest(ctx context.Context, request dto
 	return transferRequestId, err
 }
 
-func (t *TransferService) UpdateTransferRequestStatus(ctx context.Context, tx pgx.Tx, id uuid.UUID, status string) error {
-	return t.repository.UpdateTransferRequestStatusWithTx(ctx, tx, id, status)
+func (t *TransferService) UpdateTransferRequestStatus(ctx context.Context, id uuid.UUID, status string) error {
+	return t.repository.UpdateTransferRequestStatusWithTx(ctx, id, status)
 }
 
 func (t *TransferService) UpdateTransferRequestStatusWithFailure(ctx context.Context, id uuid.UUID, status, failure string) error {

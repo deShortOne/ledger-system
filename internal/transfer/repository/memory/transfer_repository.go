@@ -5,7 +5,6 @@ import (
 
 	"github.com/deshortone/ledger-system/internal/transfer/dto"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
 
 type TransferInMemoryRepository struct {
@@ -18,7 +17,7 @@ func NewTransferInMemoryRepository() *TransferInMemoryRepository {
 	return &TransferInMemoryRepository{}
 }
 
-func (r *TransferInMemoryRepository) CreateTransfer(ctx context.Context, tx pgx.Tx, request dto.NewTransfer) error {
+func (r *TransferInMemoryRepository) CreateTransfer(ctx context.Context, request dto.NewTransfer) error {
 	r.Transfers = append(r.Transfers, request)
 	return nil
 }
@@ -28,7 +27,7 @@ func (r *TransferInMemoryRepository) CreateTransferRequest(ctx context.Context, 
 	return nil
 }
 
-func (r *TransferInMemoryRepository) UpdateTransferRequestStatusWithTx(ctx context.Context, tx pgx.Tx, id uuid.UUID, status string) error {
+func (r *TransferInMemoryRepository) UpdateTransferRequestStatusWithTx(ctx context.Context, id uuid.UUID, status string) error {
 	r.StatusUpdates = append(r.StatusUpdates, TransferRequestStatusUpdate{
 		Id:                id,
 		Status:            status,

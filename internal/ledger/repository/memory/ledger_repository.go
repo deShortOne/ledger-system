@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
-	"github.com/jackc/pgx/v5"
 )
 
 type LedgerInMemoryRepository struct {
@@ -19,12 +18,12 @@ func NewLedgerInMemoryRepository() *LedgerInMemoryRepository {
 	}
 }
 
-func (r *LedgerInMemoryRepository) CreateLedgerEntry(ctx context.Context, tx pgx.Tx, record dto.LedgerEntry) error {
+func (r *LedgerInMemoryRepository) CreateLedgerEntry(ctx context.Context, record dto.LedgerEntry) error {
 	r.ledgerEntries = append(r.ledgerEntries, record)
 	return nil
 }
 
-func (r *LedgerInMemoryRepository) CreateTransaction(ctx context.Context, tx pgx.Tx, record dto.Transaction) error {
+func (r *LedgerInMemoryRepository) CreateTransaction(ctx context.Context, record dto.Transaction) error {
 	r.transactions = append(r.transactions, record)
 	return nil
 }

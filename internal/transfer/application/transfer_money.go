@@ -4,27 +4,27 @@ import (
 	"context"
 
 	"github.com/deshortone/ledger-system/internal/ledger/contracts"
+	"github.com/deshortone/ledger-system/internal/platform/database_base"
 	"github.com/deshortone/ledger-system/internal/transfer/domain"
 	"github.com/deshortone/ledger-system/internal/transfer/dto"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type TransferMoneyBetweenAccounts struct {
 	transferService domain.TransferService
-	pool            *pgxpool.Pool
 	ledgerService   domain.LedgerService
+	uow             database_base.UnitOfWork
 }
 
 func NewTransferMoneyBetweenAccounts(
 	transferService domain.TransferService,
-	pool *pgxpool.Pool,
 	ledgerService domain.LedgerService,
+	uow database_base.UnitOfWork,
 ) *TransferMoneyBetweenAccounts {
 	return &TransferMoneyBetweenAccounts{
 		transferService: transferService,
-		pool:            pool,
 		ledgerService:   ledgerService,
+		uow:             uow,
 	}
 }
 
@@ -39,40 +39,36 @@ func (a *TransferMoneyBetweenAccounts) TransferMoney(ctx context.Context, fromAc
 	if err != nil {
 		return err
 	}
+	err = a.uow.Do(ctx, func(ctx1 context.Context) error {
+		transferId, err := a.transferService.CreateTransfer(ctx1, transferRequestId, dto.NewCustomTimeNow())
+		if err != nil {
+			return err
+		}
 
-	tx, err := a.pool.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		tx.Rollback(ctx)
-		a.transferService.UpdateTransferRequestStatusWithFailure(ctx, transferRequestId, "Failed", "due to rollback")
-	}()
-
-	transferId, err := a.transferService.CreateTransfer(ctx, tx, transferRequestId, dto.NewCustomTimeNow())
-
-	a.ledgerService.AddToLedger(ctx, tx, contracts.AddToLedgerRequest{
-		TransferId: transferId,
-		CreatedAt:  dto.NewCustomTimeNow().Time,
-		Entries: []contracts.LedgerEntries{
-			{
-				AccountId: fromAccountId,
-				Amount:    amount,
-				Direction: contracts.DEBIT,
+		err = a.ledgerService.AddToLedger(ctx1, contracts.AddToLedgerRequest{
+			TransferId: transferId,
+			CreatedAt:  dto.NewCustomTimeNow().Time,
+			Entries: []contracts.LedgerEntries{
+				{
+					AccountId: fromAccountId,
+					Amount:    amount,
+					Direction: contracts.DEBIT,
+				},
+				{
+					AccountId: toAccountId,
+					Amount:    amount,
+					Direction: contracts.CREDIT,
+				},
 			},
-			{
-				AccountId: toAccountId,
-				Amount:    amount,
-				Direction: contracts.CREDIT,
-			},
-		},
+		})
+		if err != nil {
+			return err
+		}
+
+		return a.transferService.UpdateTransferRequestStatus(ctx1, transferRequestId, "Success")
 	})
-
-	a.transferService.UpdateTransferRequestStatus(ctx, tx, transferRequestId, "Success")
-
-	if err = tx.Commit(ctx); err != nil {
-		a.transferService.UpdateTransferRequestStatusWithFailure(ctx, transferRequestId, "Failed", "due to unable to commit")
-		return err
+	if err != nil {
+		return a.transferService.UpdateTransferRequestStatusWithFailure(ctx, transferRequestId, "Failed", "For reasons")
 	}
 
 	return nil

@@ -7,14 +7,12 @@ import (
 	"github.com/deshortone/ledger-system/internal/transfer/dto"
 	"github.com/deshortone/ledger-system/internal/transfer/repository/memory"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreatingTransfer(t *testing.T) {
 	t.Run("successfully creating transfer", func(t *testing.T) {
-		var tx pgx.Tx
 		repo := memory.NewTransferInMemoryRepository()
 		service := NewTransferService(repo)
 
@@ -22,7 +20,7 @@ func TestCreatingTransfer(t *testing.T) {
 		timee, err := time.Parse("2006-01-02 15:04:05 -0700", "2026-03-15 12:00:00 +0000")
 		require.NoError(t, err)
 		customTime := dto.NewCustomTime(timee)
-		_, err = service.CreateTransfer(t.Context(), tx, transferRequestId, customTime)
+		_, err = service.CreateTransfer(t.Context(), transferRequestId, customTime)
 		require.NoError(t, err)
 
 		require.Equal(t, 1, len(repo.Transfers))
@@ -59,12 +57,11 @@ func TestCreatingTransferRequest(t *testing.T) {
 
 func TestUpdatingTransferRequestStatus(t *testing.T) {
 	t.Run("successful", func(t *testing.T) {
-		var tx pgx.Tx
 		repo := memory.NewTransferInMemoryRepository()
 		service := NewTransferService(repo)
 
 		transferRequestId := uuid.New()
-		err := service.UpdateTransferRequestStatus(t.Context(), tx, transferRequestId, "status message")
+		err := service.UpdateTransferRequestStatus(t.Context(), transferRequestId, "status message")
 		require.NoError(t, err)
 
 		require.Equal(t, 1, len(repo.StatusUpdates))

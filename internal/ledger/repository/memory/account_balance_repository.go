@@ -7,7 +7,6 @@ import (
 
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
 
 type AccountBalanceInMemoryRepository struct {
@@ -20,7 +19,7 @@ func NewAccountBalanceInMemoryRepository() *AccountBalanceInMemoryRepository {
 	}
 }
 
-func (r *AccountBalanceInMemoryRepository) GetAccountBalance(ctx context.Context, tx pgx.Tx, accountId uuid.UUID) (dto.AccountBalance, error) {
+func (r *AccountBalanceInMemoryRepository) GetAccountBalance(ctx context.Context, accountId uuid.UUID) (dto.AccountBalance, error) {
 	for _, accountBalance := range r.accountBalances {
 		if accountBalance.AccountId == accountId {
 			return accountBalance, nil
@@ -30,7 +29,7 @@ func (r *AccountBalanceInMemoryRepository) GetAccountBalance(ctx context.Context
 	return dto.AccountBalance{}, errors.New("account balance not found")
 }
 
-func (r *AccountBalanceInMemoryRepository) UpdateAccountBalance(ctx context.Context, tx pgx.Tx, record dto.AccountBalance) error {
+func (r *AccountBalanceInMemoryRepository) UpdateAccountBalance(ctx context.Context, record dto.AccountBalance) error {
 	for i, accountBalance := range r.accountBalances {
 		if accountBalance.AccountId == record.AccountId {
 			r.accountBalances[i].Availablebalance = record.Availablebalance
