@@ -14,3 +14,10 @@ type TransferRepository interface {
 	UpdateTransferRequestStatusWithTx(ctx context.Context, tx pgx.Tx, id uuid.UUID, status string) error
 	UpdateTransferRequestStatusWithFailure(ctx context.Context, id uuid.UUID, status, failure string) error
 }
+
+type TransferService interface {
+	CreateTransferRequest(ctx context.Context, request dto.CreateNewTransfer) (uuid.UUID, error)
+	CreateTransfer(ctx context.Context, tx pgx.Tx, transferRequestId uuid.UUID, executedAt dto.CustomTime) (uuid.UUID, error)
+	UpdateTransferRequestStatus(ctx context.Context, tx pgx.Tx, id uuid.UUID, status string) error
+	UpdateTransferRequestStatusWithFailure(ctx context.Context, id uuid.UUID, status, failure string) error
+}
