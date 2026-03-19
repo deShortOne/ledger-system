@@ -7,23 +7,23 @@ import (
 )
 
 type LedgerInMemoryRepository struct {
-	ledgerEntries []dto.LedgerEntry
-	transactions  []dto.Transaction
+	LedgerEntries []dto.LedgerEntry
+	Transactions  []dto.Transaction
 }
 
 func NewLedgerInMemoryRepository() *LedgerInMemoryRepository {
 	return &LedgerInMemoryRepository{
-		ledgerEntries: []dto.LedgerEntry{},
-		transactions:  []dto.Transaction{},
+		LedgerEntries: []dto.LedgerEntry{},
+		Transactions:  []dto.Transaction{},
 	}
 }
 
 func (r *LedgerInMemoryRepository) CreateLedgerEntry(ctx context.Context, record dto.LedgerEntry) error {
-	r.ledgerEntries = append(r.ledgerEntries, record)
+	r.LedgerEntries = append(r.LedgerEntries, record)
 	return nil
 }
 
 func (r *LedgerInMemoryRepository) CreateTransaction(ctx context.Context, record dto.Transaction) error {
-	r.transactions = append(r.transactions, record)
+	r.Transactions = append(r.Transactions, record)
 	return nil
 }

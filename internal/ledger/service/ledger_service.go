@@ -29,7 +29,7 @@ func (s LedgerService) AddToLedger(ctx context.Context, request contracts.AddToL
 	var sumOfMonies float64
 	transactionId := uuid.New()
 	err := s.ledgerRepository.CreateTransaction(ctx, dto.Transaction{
-		Identifier: uuid.New(),
+		Identifier: transactionId,
 		TransferId: request.TransferId,
 		CreatedAt:  request.CreatedAt,
 		Status:     "posted",
