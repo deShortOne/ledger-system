@@ -42,9 +42,10 @@ func TestAddToLedger(t *testing.T) {
 		ledgerRepository := memory.NewLedgerInMemoryRepository()
 		service := NewLedgerService(ledgerRepository, accountBalanceRepository)
 
+		transferId := uuid.New()
 		timeOfTransfer, err := time.Parse("2006-01-02 15:04:05 -0700", "2026-03-15 12:00:00 +0000")
 		err = service.AddToLedger(t.Context(), contracts.AddToLedgerRequest{
-			TransferId: uuid.New(),
+			TransferId: transferId,
 			CreatedAt:  timeOfTransfer,
 			Entries: []contracts.LedgerEntries{
 				{
@@ -69,6 +70,22 @@ func TestAddToLedger(t *testing.T) {
 		assert.Equal(t, timeOfTransfer, account1.UpdatedAt)
 		assert.Equal(t, float64(90), account2.Availablebalance)
 		assert.Equal(t, timeOfTransfer, account2.UpdatedAt)
+
+		require.Equal(t, 1, len(ledgerRepository.Transactions))
+		transaction := ledgerRepository.Transactions[0]
+		assert.Equal(t, transferId, transaction.TransferId)
+
+		require.Equal(t, 2, len(ledgerRepository.LedgerEntries))
+		ledgerEntry1 := ledgerRepository.LedgerEntries[0]
+		assert.Equal(t, transaction.Identifier, ledgerEntry1.TransactionId)
+		assert.Equal(t, account1Id, ledgerEntry1.AccountId)
+		assert.Equal(t, contracts.CREDIT, ledgerEntry1.Direction)
+		assert.Equal(t, float64(10), ledgerEntry1.Amount)
+		ledgerEntry2 := ledgerRepository.LedgerEntries[1]
+		assert.Equal(t, transaction.Identifier, ledgerEntry2.TransactionId)
+		assert.Equal(t, account2Id, ledgerEntry2.AccountId)
+		assert.Equal(t, contracts.DEBIT, ledgerEntry2.Direction)
+		assert.Equal(t, float64(10), ledgerEntry2.Amount)
 	})
 
 	t.Run("when the double entry is violated", func(t *testing.T) {
