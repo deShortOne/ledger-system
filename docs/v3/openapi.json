@@ -131,7 +131,7 @@
     },
     "/transfer" : {
       "post" : {
-        "description" : "Transfers money from one account to another a user",
+        "description" : "Transfers money from one account to another",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -199,6 +199,18 @@
             "type" : "string"
           },
           "status" : {
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "controller.DepositMoneyRequest" : {
+        "properties" : {
+          "amount" : {
+            "format" : "float64",
+            "type" : "number"
+          },
+          "toAccountId" : {
             "type" : "string"
           }
         },

@@ -118,7 +118,7 @@ const docTemplate = `{
         },
         "/transfer": {
             "post": {
-                "description": "Transfers money from one account to another a user",
+                "description": "Transfers money from one account to another",
                 "consumes": [
                     "application/json"
                 ],
@@ -181,6 +181,18 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "controller.DepositMoneyRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number",
+                    "format": "float64"
+                },
+                "toAccountId": {
                     "type": "string"
                 }
             }
