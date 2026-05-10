@@ -21,6 +21,16 @@ definitions:
           $ref: '#/definitions/controller.AccountResponse'
         type: array
     type: object
+  controller.TransferMoneyRequest:
+    properties:
+      amount:
+        format: float64
+        type: number
+      fromAccountId:
+        type: string
+      toAccountId:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -95,4 +105,34 @@ paths:
       summary: Creates a user
       tags:
       - identity
+  /transfer:
+    post:
+      consumes:
+      - application/json
+      description: Transfers money from one account to another a user
+      parameters:
+      - description: Transfer money request desc
+        in: body
+        name: request"
+        required: true
+        schema:
+          $ref: '#/definitions/controller.TransferMoneyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Transfers money from one account to another
+      tags:
+      - transfer
 swagger: "2.0"

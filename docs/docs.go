@@ -115,6 +115,52 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/transfer": {
+            "post": {
+                "description": "Transfers money from one account to another a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "transfer"
+                ],
+                "summary": "Transfers money from one account to another",
+                "parameters": [
+                    {
+                        "description": "Transfer money request desc",
+                        "name": "request\"",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.TransferMoneyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -147,6 +193,21 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/controller.AccountResponse"
                     }
+                }
+            }
+        },
+        "controller.TransferMoneyRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number",
+                    "format": "float64"
+                },
+                "fromAccountId": {
+                    "type": "string"
+                },
+                "toAccountId": {
+                    "type": "string"
                 }
             }
         }

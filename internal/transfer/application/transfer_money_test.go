@@ -28,7 +28,7 @@ func TestTransferringMoney(t *testing.T) {
 
 		uow := database_base.FakeUOW{}
 
-		transferMoneyApplication := NewTransferMoneyBetweenAccounts(&transferService, ledgerService, uow)
+		transferMoneyApplication := NewTransferMoneyBetweenAccounts(transferService, ledgerService, uow)
 
 		fromAccountId := uuid.New()
 		toAccountId := uuid.New()

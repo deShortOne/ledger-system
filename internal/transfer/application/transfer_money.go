@@ -28,7 +28,6 @@ func NewTransferMoneyBetweenAccounts(
 	}
 }
 
-// !! DO NOT USE YET - NOT ONLY UNTESTED BUT WRONG! SKELETON HERE ONLY
 func (a *TransferMoneyBetweenAccounts) TransferMoney(ctx context.Context, fromAccountId, toAccountId uuid.UUID, amount float64) error {
 	transferRequestId, err := a.transferService.CreateTransferRequest(ctx, dto.CreateNewTransfer{
 		FromAccountId: fromAccountId,

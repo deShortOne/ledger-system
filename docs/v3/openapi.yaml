@@ -85,6 +85,39 @@ paths:
       summary: Creates a user
       tags:
       - identity
+  /transfer:
+    post:
+      description: Transfers money from one account to another a user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/controller.TransferMoneyRequest"
+        description: Transfer money request desc
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Bad Request
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Internal Server Error
+      summary: Transfers money from one account to another
+      tags:
+      - transfer
+      x-codegen-request-body-name: request"
 components:
   schemas:
     controller.AccountResponse:
@@ -125,5 +158,15 @@ components:
           items:
             $ref: "#/components/schemas/controller.AccountResponse"
           type: array
+      type: object
+    controller.TransferMoneyRequest:
+      properties:
+        amount:
+          format: float64
+          type: number
+        fromAccountId:
+          type: string
+        toAccountId:
+          type: string
       type: object
 x-original-swagger-version: "2.0"

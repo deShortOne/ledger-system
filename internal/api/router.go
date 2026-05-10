@@ -6,6 +6,7 @@ import (
 
 	"github.com/deshortone/ledger-system/internal/identity"
 	"github.com/deshortone/ledger-system/internal/ledger"
+	"github.com/deshortone/ledger-system/internal/transfer"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -31,10 +32,12 @@ func RegisterRoutes(ctx context.Context, r *gin.Engine) (App, error) {
 	// setup modules
 	ledgerModule := ledger.SetupLedgerModule(app.Pool)
 	identityModule := identity.SetupIdentityModule(app.Pool, ledgerModule.LedgerService)
+	transferModule := transfer.SetupTransferModule(app.Pool, ledgerModule.LedgerService)
 
 	// setup routes
 	version1 := r.Group("/api")
 	identityModule.Handler.RegisterRoutes(version1)
+	transferModule.Handler.RegisterRoutes(version1)
 
 	return app, nil
 }

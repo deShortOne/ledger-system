@@ -20,3 +20,6 @@ type TransferService interface {
 	UpdateTransferRequestStatus(ctx context.Context, id uuid.UUID, status string) error
 	UpdateTransferRequestStatusWithFailure(ctx context.Context, id uuid.UUID, status, failure string) error
 }
+type TransferApplication interface {
+	TransferMoney(ctx context.Context, fromAccountId, toAccountId uuid.UUID, amount float64) error
+}
