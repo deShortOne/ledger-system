@@ -55,3 +55,14 @@ func (t *TransferService) UpdateTransferRequestStatus(ctx context.Context, id uu
 func (t *TransferService) UpdateTransferRequestStatusWithFailure(ctx context.Context, id uuid.UUID, status, failure string) error {
 	return t.repository.UpdateTransferRequestStatusWithFailure(ctx, id, status, failure)
 }
+
+func (t *TransferService) GetTransferStatus(ctx context.Context, id uuid.UUID) (dto.TransferStatus, error) {
+	status, failure, err := t.repository.GetTransferStatus(ctx, id)
+	if err != nil {
+		return dto.TransferStatus{}, err
+	}
+	return dto.TransferStatus{
+		IsSuccessful:        status == "Success",
+		ReasonForNotSuccess: failure,
+	}, nil
+}

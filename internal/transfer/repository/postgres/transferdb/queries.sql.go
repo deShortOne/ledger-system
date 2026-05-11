@@ -68,6 +68,24 @@ func (q *Queries) CreateTransferRequest(ctx context.Context, arg CreateTransferR
 	return err
 }
 
+const getTranserRequestStatus = `-- name: GetTranserRequestStatus :one
+SELECT status, failure_reason
+FROM transfer.transfer_requests
+WHERE identifier = $1
+`
+
+type GetTranserRequestStatusRow struct {
+	Status        string
+	FailureReason pgtype.Text
+}
+
+func (q *Queries) GetTranserRequestStatus(ctx context.Context, identifier uuid.UUID) (GetTranserRequestStatusRow, error) {
+	row := q.db.QueryRow(ctx, getTranserRequestStatus, identifier)
+	var i GetTranserRequestStatusRow
+	err := row.Scan(&i.Status, &i.FailureReason)
+	return i, err
+}
+
 const updateTransferRequestStatus = `-- name: UpdateTransferRequestStatus :exec
 UPDATE transfer.transfer_requests
 SET status = $2,

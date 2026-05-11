@@ -41,7 +41,8 @@ func TestTransferringMoney(t *testing.T) {
 		})
 		accountRepo.CreateNewAccountBalance(t.Context(), toAccountId, time.Now())
 
-		err := transferMoneyApplication.TransferMoney(t.Context(), fromAccountId, toAccountId, amount)
+		transferId, err := transferMoneyApplication.TransferMoney(t.Context(), fromAccountId, toAccountId, amount)
+		require.NotEqual(t, uuid.Nil, transferId)
 		require.NoError(t, err)
 
 		acc1, err := accountRepo.GetAccountBalance(t.Context(), fromAccountId)
@@ -86,5 +87,65 @@ func TestTransferringMoney(t *testing.T) {
 		assert.Equal(t, float64(523), ledgerEntry2.Amount)
 		assert.Equal(t, contracts.LedgerDirection("CREDIT"), ledgerEntry2.Direction)
 		assert.Equal(t, transaction.Identifier, ledgerEntry2.TransactionId)
+	})
+
+	t.Run("when there is an error during the unit of work", func(t *testing.T) {
+		transferRepo := transfer_memory.NewTransferInMemoryRepository()
+		transferService := transfer_service.NewTransferService(transferRepo)
+
+		accountRepo := account_memory.NewAccountBalanceInMemoryRepository()
+		ledgerRepo := ledger_memory.NewLedgerInMemoryRepository()
+		ledgerService := ledger_service.NewLedgerService(ledgerRepo, accountRepo)
+
+		uow := database_base.FakeUOW{}
+
+		transferMoneyApplication := NewTransferMoneyBetweenAccounts(transferService, ledgerService, uow)
+
+		fromAccountId := uuid.New()
+		toAccountId := uuid.New()
+		amount := float64(523)
+		accountRepo.CreateNewAccountBalance(t.Context(), fromAccountId, time.Now())
+		accountRepo.UpdateAccountBalance(t.Context(), dto.AccountBalance{
+			AccountId:        fromAccountId,
+			Availablebalance: 100,
+			UpdatedAt:        time.Now(),
+		})
+		accountRepo.CreateNewAccountBalance(t.Context(), toAccountId, time.Now())
+
+		transferId, err := transferMoneyApplication.TransferMoney(t.Context(), fromAccountId, toAccountId, amount)
+		require.NotEqual(t, uuid.Nil, transferId) // as long as the transfer exists in the db, we should always return the id for it
+		require.NoError(t, err)
+
+		acc1, err := accountRepo.GetAccountBalance(t.Context(), fromAccountId)
+		require.NoError(t, err)
+		assert.Equal(t, float64(100), acc1.Availablebalance)
+
+		acc2, err := accountRepo.GetAccountBalance(t.Context(), toAccountId)
+		require.NoError(t, err)
+		assert.Equal(t, float64(0), acc2.Availablebalance)
+
+		require.Equal(t, 1, len(transferRepo.TransferRequests))
+		transferRequestAcc := transferRepo.TransferRequests[0]
+		assert.Equal(t, fromAccountId, transferRequestAcc.FromAccountId)
+		assert.Equal(t, toAccountId, transferRequestAcc.ToAccountId)
+		assert.Equal(t, float64(523), transferRequestAcc.Amount)
+		assert.Equal(t, "pending", transferRequestAcc.Status)
+
+		require.Equal(t, 1, len(transferRepo.StatusUpdates))
+		statusUpdateAcc := transferRepo.StatusUpdates[0]
+		assert.Equal(t, transferRequestAcc.Identifier, statusUpdateAcc.Id)
+		assert.Equal(t, "Failed", statusUpdateAcc.Status)
+		assert.Equal(t, true, statusUpdateAcc.WasFailureUpdated)
+
+		require.Equal(t, 1, len(transferRepo.Transfers))
+		transferAcc := transferRepo.Transfers[0]
+		assert.Equal(t, transferRequestAcc.Identifier, transferAcc.TransferRequestId)
+
+		require.Equal(t, 1, len(ledgerRepo.Transactions))
+		transaction := ledgerRepo.Transactions[0]
+		assert.Equal(t, "posted", transaction.Status)
+		assert.Equal(t, transferAcc.Identifier, transaction.TransferId)
+
+		require.Equal(t, 0, len(ledgerRepo.LedgerEntries))
 	})
 }

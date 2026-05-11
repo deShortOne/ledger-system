@@ -28,7 +28,7 @@ func NewTransferMoneyBetweenAccounts(
 	}
 }
 
-func (a *TransferMoneyBetweenAccounts) TransferMoney(ctx context.Context, fromAccountId, toAccountId uuid.UUID, amount float64) error {
+func (a *TransferMoneyBetweenAccounts) TransferMoney(ctx context.Context, fromAccountId, toAccountId uuid.UUID, amount float64) (uuid.UUID, error) {
 	transferRequestId, err := a.transferService.CreateTransferRequest(ctx, dto.CreateNewTransfer{
 		FromAccountId: fromAccountId,
 		ToAccountId:   toAccountId,
@@ -36,7 +36,7 @@ func (a *TransferMoneyBetweenAccounts) TransferMoney(ctx context.Context, fromAc
 		RequestedAt:   dto.NewCustomTimeNow(),
 	})
 	if err != nil {
-		return err
+		return uuid.Nil, err
 	}
 	err = a.uow.Do(ctx, func(ctx1 context.Context) error {
 		transferId, err := a.transferService.CreateTransfer(ctx1, transferRequestId, dto.NewCustomTimeNow())
@@ -67,8 +67,8 @@ func (a *TransferMoneyBetweenAccounts) TransferMoney(ctx context.Context, fromAc
 		return a.transferService.UpdateTransferRequestStatus(ctx1, transferRequestId, "Success")
 	})
 	if err != nil {
-		return a.transferService.UpdateTransferRequestStatusWithFailure(ctx, transferRequestId, "Failed", "For reasons")
+		return transferRequestId, a.transferService.UpdateTransferRequestStatusWithFailure(ctx, transferRequestId, "Failed", "For reasons")
 	}
 
-	return nil
+	return transferRequestId, nil
 }

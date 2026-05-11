@@ -5,6 +5,10 @@ type DepositMoneyRequest struct {
 	Amount      float64
 }
 
+type TransferMoneyStatusRequest struct {
+	TransferId string
+}
+
 type TransferMoneyRequest struct {
 	FromAccountId string
 	ToAccountId   string

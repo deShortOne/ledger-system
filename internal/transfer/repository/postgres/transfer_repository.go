@@ -55,6 +55,18 @@ func (r TransferPostgresRepository) CreateTransferRequest(ctx context.Context, r
 	})
 }
 
+func (r TransferPostgresRepository) GetTransferStatus(ctx context.Context, id uuid.UUID) (string, string, error) {
+	exector := r.GetExecutor(ctx)
+	queries := transferdb.New(exector)
+
+	data, err := queries.GetTranserRequestStatus(ctx, id)
+	if err != nil {
+		return "", "", err
+	}
+
+	return data.Status, data.FailureReason.String, nil
+}
+
 func (r TransferPostgresRepository) UpdateTransferRequestStatusWithTx(ctx context.Context, id uuid.UUID, status string) error {
 	executor := r.GetExecutor(ctx)
 	queries := transferdb.New(executor)

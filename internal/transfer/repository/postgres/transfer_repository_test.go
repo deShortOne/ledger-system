@@ -37,6 +37,11 @@ func TestCreateTransfer(t *testing.T) {
 		})
 		assert.NoError(t, err)
 
+		status, failureReason, err := repository.GetTransferStatus(t.Context(), transferRequestId)
+		require.NoError(t, err)
+		assert.Equal(t, "posted", status)
+		assert.Equal(t, "", failureReason)
+
 		var executedActual time.Time
 		err = pool.QueryRow(t.Context(), "SELECT executed_at FROM transfer.transfers WHERE identifier = $1;", transferId).Scan(&executedActual)
 		require.NoError(t, err)

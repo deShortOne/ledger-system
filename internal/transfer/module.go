@@ -22,7 +22,7 @@ func SetupTransferModule(
 	service := service.NewTransferService(repository)
 	uow := database_base.NewPgUnitOfWork(pool)
 	transferApplication := application.NewTransferMoneyBetweenAccounts(service, ledgerService, uow)
-	handler := controller.NewHandler(transferApplication)
+	handler := controller.NewHandler(transferApplication, service)
 
 	return TransferModule{
 		Handler: handler,

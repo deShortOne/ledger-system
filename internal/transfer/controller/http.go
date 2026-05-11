@@ -9,19 +9,23 @@ import (
 )
 
 type Handler struct {
-	transferApplication domain.TransferApplication
+	transferApplication     domain.TransferApplication
+	transferReadonlyService domain.TransferReadOnlyService
 }
 
 func NewHandler(
 	transferApplication domain.TransferApplication,
+	transferReadonlyService domain.TransferReadOnlyService,
 ) Handler {
 	return Handler{
-		transferApplication: transferApplication,
+		transferApplication:     transferApplication,
+		transferReadonlyService: transferReadonlyService,
 	}
 }
 
 func (h *Handler) RegisterRoutes(c *gin.RouterGroup) {
 	c.POST("/deposit", h.depositMoney)
+	c.POST("/getTransferStatus", h.getTransferStatus)
 	c.POST("/transfer", h.transferMoney)
 }
 
@@ -50,13 +54,47 @@ func (h *Handler) depositMoney(c *gin.Context) {
 		return
 	}
 
-	err = h.transferApplication.TransferMoney(c.Request.Context(), uuid.MustParse("6724081d-6f50-4172-92c1-9c5d571f051c"), toAccountId, daRequest.Amount)
+	transferId, err := h.transferApplication.TransferMoney(c.Request.Context(), uuid.MustParse("6724081d-6f50-4172-92c1-9c5d571f051c"), toAccountId, daRequest.Amount)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unknown error", "Message": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"transfer status": "success"})
+	c.JSON(http.StatusOK, gin.H{"transfer status": "success", "transfer id": transferId.String()})
+}
+
+// getTransferStatus godoc
+//
+//	@Summary		Get status about transfer
+//	@Description	Get status about transfer
+//	@Tags			transfer
+//	@Accept       	json
+//	@Produce		json
+//	@Param			"Transfer money status request"	body	TransferMoneyStatusRequest		true	"Transfer money status request desc"
+//	@Success		200	{object}	string
+//	@Failure		400	{object}	string
+//	@Failure		500	{object}	string
+//	@Router			/transfer		[post]
+func (h *Handler) getTransferStatus(c *gin.Context) {
+	var daRequest TransferMoneyStatusRequest
+	if err := c.BindJSON(&daRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ensure body is created correctly"})
+		return
+	}
+
+	transferId, err := uuid.Parse(daRequest.TransferId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ensure transferId has been correctly setup"})
+		return
+	}
+
+	transferStatus, err := h.transferReadonlyService.GetTransferStatus(c.Request.Context(), transferId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "unknown error", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"isTransferSuccessful": transferStatus.IsSuccessful, "reason": transferStatus.ReasonForNotSuccess})
 }
 
 // transferMoney godoc
@@ -90,11 +128,11 @@ func (h *Handler) transferMoney(c *gin.Context) {
 		return
 	}
 
-	err = h.transferApplication.TransferMoney(c.Request.Context(), fromAccountId, toAccountId, daRequest.Amount)
+	transferId, err := h.transferApplication.TransferMoney(c.Request.Context(), fromAccountId, toAccountId, daRequest.Amount)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unknown error", "Message": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"transfer status": "success"})
+	c.JSON(http.StatusOK, gin.H{"transfer status": "success", "transfer id": transferId})
 }

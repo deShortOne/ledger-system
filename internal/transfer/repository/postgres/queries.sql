@@ -24,3 +24,8 @@ INSERT INTO transfer.transfers (
     (SELECT transfer_requests.id FROM transfer.transfer_requests WHERE transfer_requests.identifier = $2),
     $3
 );
+
+-- name: GetTranserRequestStatus :one
+SELECT status, failure_reason
+FROM transfer.transfer_requests
+WHERE identifier = $1;

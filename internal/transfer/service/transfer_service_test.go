@@ -68,6 +68,11 @@ func TestUpdatingTransferRequestStatus(t *testing.T) {
 		assert.Equal(t, transferRequestId, repo.StatusUpdates[0].Id)
 		assert.Equal(t, "status message", repo.StatusUpdates[0].Status)
 		assert.Equal(t, false, repo.StatusUpdates[0].WasFailureUpdated)
+
+		status, failureReason, err := repo.GetTransferStatus(t.Context(), transferRequestId)
+		require.NoError(t, err)
+		assert.Equal(t, "status message", status)
+		assert.Equal(t, "", failureReason)
 	})
 }
 
@@ -85,5 +90,10 @@ func TestUpdatingTransferRequestStatusWithFailure(t *testing.T) {
 		assert.Equal(t, "status message", repo.StatusUpdates[0].Status)
 		assert.Equal(t, "failure message", repo.StatusUpdates[0].Failure)
 		assert.Equal(t, true, repo.StatusUpdates[0].WasFailureUpdated)
+
+		status, failureReason, err := repo.GetTransferStatus(t.Context(), transferRequestId)
+		require.NoError(t, err)
+		assert.Equal(t, "status message", status)
+		assert.Equal(t, "failure message", failureReason)
 	})
 }
