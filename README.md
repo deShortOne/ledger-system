@@ -20,3 +20,10 @@ C4Context
     Rel(SystemD, SystemC, "Update financial data", "")
     Rel(SystemC, SystemB, "Convert id into something usable", "(TBD)")
 ```
+
+## Kubernetes
+Commands below will allow you to setup and run
+```bash
+kubectl apply -f ./k8s/
+kubectl port-forward svc/go-app-service 8080:80
+```

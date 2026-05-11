@@ -40,7 +40,7 @@ func (h *Handler) RegisterRoutes(c *gin.RouterGroup) {
 //	@Success		200	{object}	string
 //	@Failure		400	{object}	string
 //	@Failure		500	{object}	string
-//	@Router			/transfer		[post]
+//	@Router			/deposit		[post]
 func (h *Handler) depositMoney(c *gin.Context) {
 	var daRequest DepositMoneyRequest
 	if err := c.BindJSON(&daRequest); err != nil {
@@ -74,7 +74,7 @@ func (h *Handler) depositMoney(c *gin.Context) {
 //	@Success		200	{object}	string
 //	@Failure		400	{object}	string
 //	@Failure		500	{object}	string
-//	@Router			/transfer		[post]
+//	@Router			/getTransferStatus		[post]
 func (h *Handler) getTransferStatus(c *gin.Context) {
 	var daRequest TransferMoneyStatusRequest
 	if err := c.BindJSON(&daRequest); err != nil {
