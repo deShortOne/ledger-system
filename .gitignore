@@ -26,6 +26,19 @@ go.work.sum
 
 # env file
 .env
+.env.local
+.env.*.local
+
+# Kubernetes secrets (use *.example instead)
+k8s/secrets.yml
+
+# Helm values with secrets
+values-*.yaml
+values-local.yaml
+!values-example.yaml
+!values.example.yaml
+lambda-system-prac-workflow/values-*.yaml
+lambda-system-prac-workflow/values-local.yaml
 
 # Editor/IDE
 # .idea/
@@ -33,3 +46,16 @@ go.work.sum
 
 bin/
 coverage.out
+
+# IDE temporary files
+*.swp
+*.swo
+*~
+
+# OS-specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db

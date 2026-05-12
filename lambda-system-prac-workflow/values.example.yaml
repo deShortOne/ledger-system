@@ -1,0 +1,106 @@
+# Helm Chart Values - EXAMPLE ONLY
+# ⚠️  This is a template. Copy to values-prod.yaml and fill with real credentials
+# DO NOT commit values-prod.yaml to version control
+# 
+# Usage:
+#   helm install my-release ./lambda-system-prac-workflow -f values-prod.yaml
+#   helm install my-release ./lambda-system-prac-workflow --set postgresql.auth.password=<secret>
+
+replicaCount: 1
+
+image:
+  repository: deshortone/ledger-system-practice
+  pullPolicy: IfNotPresent
+  tag: "0.0.1"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources: {}
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes: []
+
+volumeMounts: []
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+## PostgreSQL configuration
+## For production, override the password:
+##   helm install ... --set postgresql.auth.password=$(kubectl get secret -o jsonpath='{.data.password}' | base64 -d)
+postgresql:
+  enabled: true
+  auth:
+    username: postgres
+    password: your_secure_password_here  # ⚠️  CHANGE THIS
+    database: ledger_system
+  primary:
+    persistence:
+      enabled: true
+
+## Environment variables - configure based on deployment
+env:
+  - name: POSTGRES_USER
+    valueFrom:
+      secretKeyRef:
+        name: myapp-postgresql
+        key: postgresql-username
+  - name: POSTGRES_PWD
+    valueFrom:
+      secretKeyRef:
+        name: myapp-postgresql
+        key: postgresql-password
+  - name: POSTGRES_HOST
+    value: "postgres-service"
+  - name: POSTGRES_PORT
+    value: "5432"
+  - name: POSTGRES_DB
+    value: "ledger_system"
