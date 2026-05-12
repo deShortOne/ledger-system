@@ -1,0 +1,109 @@
+replicaCount: 1
+
+image:
+  repository: deshortone/ledger-system-practice
+  pullPolicy: IfNotPresent
+  tag: "0.0.1"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+httpRoute:
+  enabled: false
+  annotations: {}
+  parentRefs:
+  - name: gateway
+    sectionName: http
+  hostnames:
+  - chart-example.local
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /headers
+
+resources: {}
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+volumes: []
+
+volumeMounts: []
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+## postgres stuff below
+postgresql:
+  enabled: true
+  auth:
+    username: userr
+    password: paswordd
+    database: userr
+  primary:
+    persistence:
+      enabled: true
+
+env:
+  - name: POSTGRES_USER
+    valueFrom:
+      secretKeyRef:
+        name: myapp-postgresql
+        key: postgresql-username
+  - name: POSTGRES_PWD
+    valueFrom:
+      secretKeyRef:
+        name: myapp-postgresql
+        key: postgresql-password
+  - name: POSTGRES_DB
+    valueFrom:
+      secretKeyRef:
+        name: myapp-postgresql
+        key: postgresql-database
+  - name: POSTGRES_HOST
+    value: postgresql
