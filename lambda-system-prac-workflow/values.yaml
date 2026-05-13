@@ -54,11 +54,11 @@ resources: {}
 
 livenessProbe:
   httpGet:
-    path: /
+    path: /health/liveness
     port: http
 readinessProbe:
   httpGet:
-    path: /
+    path: /health/readiness
     port: http
 
 autoscaling:
