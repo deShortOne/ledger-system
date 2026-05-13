@@ -49,3 +49,9 @@ Helm is preferred over just using kubernetes because it can be used across envir
 helm install go-app-service ./lambda-system-prac-workflow
 kubectl port-forward svc/go-app-service-lambda-system-prac-workflow 8080:8080
 ```
+
+## Health endpoints
+These endpoints are important to tell kubernetes whether or not it needs to restart the app.
+Live means the app has not crashed and is running
+Ready means the app is live and that it's ready to accept requests
+Important distinction because if the app is not live, then kubernetes might restart the app, whereas if the app is live but not ready (due to a temporary database outage for a couple mins), then kubernetes should not restart all apps (causing a restart storm) further reducing uptime.

@@ -39,6 +39,11 @@ definitions:
       toAccountId:
         type: string
     type: object
+  controller.TransferMoneyStatusRequest:
+    properties:
+      transferId:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -113,6 +118,96 @@ paths:
       summary: Creates a user
       tags:
       - identity
+  /deposit:
+    post:
+      consumes:
+      - application/json
+      description: Deposits money into an account
+      parameters:
+      - description: Deposits money request desc
+        in: body
+        name: request"
+        required: true
+        schema:
+          $ref: '#/definitions/controller.DepositMoneyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Deposits money into an account
+      tags:
+      - transfer
+  /getTransferStatus:
+    post:
+      consumes:
+      - application/json
+      description: Get status about transfer
+      parameters:
+      - description: Transfer money status request desc
+        in: body
+        name: request"
+        required: true
+        schema:
+          $ref: '#/definitions/controller.TransferMoneyStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get status about transfer
+      tags:
+      - transfer
+  /health/liveness:
+    get:
+      description: Check if app is live
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "503":
+          description: Service Unavailable
+          schema:
+            type: string
+      summary: Check if app is live
+      tags:
+      - health
+  /health/readiness:
+    get:
+      description: Check if app is ready to handle connections
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "503":
+          description: Service Unavailable
+          schema:
+            type: string
+      summary: Check if app is ready to handle connections
+      tags:
+      - health
   /transfer:
     post:
       consumes:
