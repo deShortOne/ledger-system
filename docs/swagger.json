@@ -110,6 +110,144 @@
                 }
             }
         },
+        "/deposit": {
+            "post": {
+                "description": "Deposits money into an account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "transfer"
+                ],
+                "summary": "Deposits money into an account",
+                "parameters": [
+                    {
+                        "description": "Deposits money request desc",
+                        "name": "request\"",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.DepositMoneyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/getTransferStatus": {
+            "post": {
+                "description": "Get status about transfer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "transfer"
+                ],
+                "summary": "Get status about transfer",
+                "parameters": [
+                    {
+                        "description": "Transfer money status request desc",
+                        "name": "request\"",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.TransferMoneyStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/health/liveness": {
+            "get": {
+                "description": "Check if app is live",
+                "tags": [
+                    "health"
+                ],
+                "summary": "Check if app is live",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/health/readiness": {
+            "get": {
+                "description": "Check if app is ready to handle connections",
+                "tags": [
+                    "health"
+                ],
+                "summary": "Check if app is ready to handle connections",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/transfer": {
             "post": {
                 "description": "Transfers money from one account to another",
@@ -213,6 +351,14 @@
                     "type": "string"
                 },
                 "toAccountId": {
+                    "type": "string"
+                }
+            }
+        },
+        "controller.TransferMoneyStatusRequest": {
+            "type": "object",
+            "properties": {
+                "transferId": {
                     "type": "string"
                 }
             }
