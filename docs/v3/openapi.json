@@ -245,7 +245,7 @@
             },
             "description" : "OK"
           },
-          "500" : {
+          "503" : {
             "content" : {
               "*/*" : {
                 "schema" : {
@@ -253,7 +253,7 @@
                 }
               }
             },
-            "description" : "Internal Server Error"
+            "description" : "Service Unavailable"
           }
         },
         "summary" : "Check if app is live",
@@ -274,7 +274,7 @@
             },
             "description" : "OK"
           },
-          "500" : {
+          "503" : {
             "content" : {
               "*/*" : {
                 "schema" : {
@@ -282,7 +282,7 @@
                 }
               }
             },
-            "description" : "Internal Server Error"
+            "description" : "Service Unavailable"
           }
         },
         "summary" : "Check if app is ready to handle connections",

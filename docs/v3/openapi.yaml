@@ -161,12 +161,12 @@ paths:
               schema:
                 type: string
           description: OK
-        "500":
+        "503":
           content:
             '*/*':
               schema:
                 type: string
-          description: Internal Server Error
+          description: Service Unavailable
       summary: Check if app is live
       tags:
       - health
@@ -180,12 +180,12 @@ paths:
               schema:
                 type: string
           description: OK
-        "500":
+        "503":
           content:
             '*/*':
               schema:
                 type: string
-          description: Internal Server Error
+          description: Service Unavailable
       summary: Check if app is ready to handle connections
       tags:
       - health
