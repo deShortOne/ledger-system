@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25'
+          go-version-file: 'go.mod'
+          check-latest: false
+          cache: true
+          cache-dependency-path: 'go.sum'
+          architecture: 'x64'
+      
+      - name: Build binary
+        run: |
+          mkdir -p dist
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+            go build -ldflags="-s -w" -o dist/app ./cmd/server
+      
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ledger-system-build
+          path: dist/app
+          retention-days: 1
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25'
+          go-version-file: 'go.mod'
+          check-latest: false
+          cache: true
+          cache-dependency-path: 'go.sum'
+          architecture: 'x64'
+
+      - name: Run tests
+        run: |
+          make test
