@@ -30,7 +30,10 @@ func (s UserService) CreateNewUser(ctx context.Context, firstName, lastName stri
 		LastName:   lastName,
 	}
 
-	s.userRepository.CreateUser(ctx, userToCreate)
+	err := s.userRepository.CreateUser(ctx, userToCreate)
+	if err != nil {
+		return dto.User{}, err
+	}
 
 	return userToCreate, nil
 }
