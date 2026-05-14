@@ -7,6 +7,7 @@ import (
 	"github.com/deshortone/ledger-system/internal/ledger/contracts"
 	"github.com/deshortone/ledger-system/internal/ledger/domain"
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
+	"github.com/deshortone/ledger-system/pkg/failure"
 	"github.com/google/uuid"
 )
 
@@ -49,7 +50,12 @@ func (s LedgerService) AddToLedger(ctx context.Context, request contracts.AddToL
 			accountBalance.Availablebalance += entry.Amount
 		} else {
 			if entry.Amount > accountBalance.Availablebalance {
-				return contracts.ErrOneOfTheAccountsDoNotHaveEnoughMoney
+				return failure.NewFailure(
+					failure.NotEnoughMoneyToDebit,
+					failure.Validation,
+					contracts.ErrOneOfTheAccountsDoNotHaveEnoughMoney,
+					"At least one account will go into debt if money is debited from their account",
+				)
 			}
 
 			sumOfMonies -= entry.Amount
@@ -74,7 +80,12 @@ func (s LedgerService) AddToLedger(ctx context.Context, request contracts.AddToL
 		}
 	}
 	if sumOfMonies != 0 {
-		return contracts.ErrDoubleEntryViolated
+		return failure.NewFailure(
+			failure.DoubleEntryViolated,
+			failure.Validation,
+			contracts.ErrDoubleEntryViolated,
+			"The total difference does not equal 0. The sum of credit and debit should cancel out",
+		)
 	}
 
 	return nil

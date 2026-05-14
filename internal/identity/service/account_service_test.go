@@ -19,7 +19,7 @@ func TestAccount(t *testing.T) {
 		require.NoError(t, err)
 		_, err = accountService.AddAccountToUser(t.Context(), badIdentifier, "", "")
 
-		assert.ErrorIs(t, common.ErrUserIdentifierNotFound, err)
+		assert.ErrorIs(t, err, common.ErrUserIdentifierNotFound)
 	})
 
 	t.Run("successfully adding account and retrieving", func(t *testing.T) {

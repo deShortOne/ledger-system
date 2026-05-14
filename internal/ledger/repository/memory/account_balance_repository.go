@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
+	"github.com/deshortone/ledger-system/pkg/failure"
 	"github.com/google/uuid"
 )
 
@@ -26,7 +27,12 @@ func (r *AccountBalanceInMemoryRepository) GetAccountBalance(ctx context.Context
 		}
 	}
 
-	return dto.AccountBalance{}, errors.New("account balance not found")
+	return dto.AccountBalance{}, failure.NewFailure(
+		failure.LedgerNotFound,
+		failure.NotFound,
+		errors.New("account balance not found"),
+		"No account balance could be found for the requested identifier",
+	)
 }
 
 func (r *AccountBalanceInMemoryRepository) UpdateAccountBalance(ctx context.Context, record dto.AccountBalance) error {
@@ -38,7 +44,12 @@ func (r *AccountBalanceInMemoryRepository) UpdateAccountBalance(ctx context.Cont
 		}
 	}
 
-	return errors.New("account balance not found")
+	return failure.NewFailure(
+		failure.LedgerNotFound,
+		failure.NotFound,
+		errors.New("account balance not found"),
+		"The account balance for the requested identifier was not available to update",
+	)
 }
 
 func (r *AccountBalanceInMemoryRepository) CreateNewAccountBalance(ctx context.Context, accountId uuid.UUID, createdAt time.Time) error {

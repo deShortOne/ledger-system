@@ -21,7 +21,7 @@ func TestCanHandleUsers(t *testing.T) {
 	t.Run("Throw error when getting non existing user", func(t *testing.T) {
 		_, err := r.GetUser(t.Context(), userToAdd.Identifier)
 
-		assert.ErrorIs(t, common.ErrUserIdentifierNotFound, err)
+		assert.ErrorIs(t, err, common.ErrUserIdentifierNotFound)
 	})
 
 	t.Run("Successfully add and get new user", func(t *testing.T) {

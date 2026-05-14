@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/deshortone/ledger-system/internal/transfer/dto"
+	"github.com/deshortone/ledger-system/pkg/failure"
 	"github.com/google/uuid"
 )
 
@@ -35,7 +36,12 @@ func (r TransferInMemoryRepository) GetTransferStatus(ctx context.Context, id uu
 		}
 	}
 
-	return "", "", errors.New("transfer status update was not found")
+	return "", "", failure.NewFailure(
+		failure.TransferRequestNotFound,
+		failure.NotFound,
+		errors.New("transfer status update was not found"),
+		"No transfer status update record exists for the requested transfer identifier",
+	)
 }
 
 func (r *TransferInMemoryRepository) UpdateTransferRequestStatusWithTx(ctx context.Context, id uuid.UUID, status string) error {

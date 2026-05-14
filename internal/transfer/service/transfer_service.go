@@ -5,6 +5,7 @@ import (
 
 	"github.com/deshortone/ledger-system/internal/transfer/domain"
 	"github.com/deshortone/ledger-system/internal/transfer/dto"
+	"github.com/deshortone/ledger-system/pkg/failure"
 	"github.com/google/uuid"
 )
 
@@ -25,7 +26,12 @@ func (t *TransferService) CreateTransfer(ctx context.Context, transferRequestId 
 		ExecutedAt:        executedAt,
 	})
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, failure.NewFailure(
+			failure.TransferRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Failed to create transfer",
+		)
 	}
 
 	return transferId, nil
@@ -42,18 +48,43 @@ func (t *TransferService) CreateTransferRequest(ctx context.Context, request dto
 		RequestedAt:   request.RequestedAt,
 	})
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, failure.NewFailure(
+			failure.TransferRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Failed to create transfer request",
+		)
 	}
 
-	return transferRequestId, err
+	return transferRequestId, nil
 }
 
 func (t *TransferService) UpdateTransferRequestStatus(ctx context.Context, id uuid.UUID, status string) error {
-	return t.repository.UpdateTransferRequestStatusWithTx(ctx, id, status)
+	err := t.repository.UpdateTransferRequestStatusWithTx(ctx, id, status)
+	if err != nil {
+		return failure.NewFailure(
+			failure.TransferRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Failed to update transfer status",
+		)
+	}
+
+	return nil
 }
 
-func (t *TransferService) UpdateTransferRequestStatusWithFailure(ctx context.Context, id uuid.UUID, status, failure string) error {
-	return t.repository.UpdateTransferRequestStatusWithFailure(ctx, id, status, failure)
+func (t *TransferService) UpdateTransferRequestStatusWithFailure(ctx context.Context, id uuid.UUID, status, failureMessage string) error {
+	err := t.repository.UpdateTransferRequestStatusWithFailure(ctx, id, status, failureMessage)
+	if err != nil {
+		return failure.NewFailure(
+			failure.TransferRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Failed to update transfer status with failure",
+		)
+	}
+
+	return nil
 }
 
 func (t *TransferService) GetTransferStatus(ctx context.Context, id uuid.UUID) (dto.TransferStatus, error) {

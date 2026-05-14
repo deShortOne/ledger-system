@@ -28,12 +28,12 @@ func TestUser(t *testing.T) {
 
 	t.Run("fail as firstname is empty", func(t *testing.T) {
 		_, err := service.CreateNewUser(t.Context(), "", "last name")
-		assert.ErrorIs(t, common.ErrUserDetailsNotFilledIn, err)
+		assert.ErrorIs(t, err, common.ErrUserDetailsNotFilledIn)
 	})
 
 	t.Run("fail as lastname is empty", func(t *testing.T) {
 		_, err := service.CreateNewUser(t.Context(), "first name", "")
-		assert.ErrorIs(t, common.ErrUserDetailsNotFilledIn, err)
+		assert.ErrorIs(t, err, common.ErrUserDetailsNotFilledIn)
 	})
 
 	t.Run("Succeed", func(t *testing.T) {

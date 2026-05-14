@@ -2,9 +2,12 @@ package service
 
 import (
 	"context"
+	"errors"
 
+	"github.com/deshortone/ledger-system/internal/identity/common"
 	"github.com/deshortone/ledger-system/internal/identity/domain"
 	"github.com/deshortone/ledger-system/internal/identity/dto"
+	"github.com/deshortone/ledger-system/pkg/failure"
 	"github.com/google/uuid"
 )
 
@@ -29,7 +32,20 @@ func (s AccountService) AddAccountToUser(ctx context.Context,
 ) (dto.Account, error) {
 	user, err := s.userRepository.GetUser(ctx, userIdentifier)
 	if err != nil {
-		return dto.Account{}, err
+		if errors.Is(err, common.ErrUserIdentifierNotFound) {
+			return dto.Account{}, failure.NewFailure(
+				failure.UserNotFound,
+				failure.NotFound,
+				err,
+				"Specified user identifier does not exist",
+			)
+		}
+		return dto.Account{}, failure.NewFailure(
+			failure.IdentityRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Failed to retrieve user before creating account",
+		)
 	}
 
 	account := dto.Account{
@@ -41,7 +57,12 @@ func (s AccountService) AddAccountToUser(ctx context.Context,
 		Status:         "available",
 	}
 	if err = s.accountRepository.CreateAccount(ctx, account); err != nil {
-		return dto.Account{}, err
+		return dto.Account{}, failure.NewFailure(
+			failure.IdentityRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Failed to create account for user",
+		)
 	}
 
 	return account, nil

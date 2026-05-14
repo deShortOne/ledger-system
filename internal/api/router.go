@@ -42,6 +42,7 @@ func RegisterRoutes(ctx context.Context, r *gin.Engine) (App, error) {
 
 	// setup routes
 	version1 := r.Group("/api")
+	version1.Use(middleware.ErrorResponseMiddleware())
 	version1.Use(middleware.ReadinessGateMiddleware(readinessGate))
 	identityModule.Handler.RegisterRoutes(version1)
 	transferModule.Handler.RegisterRoutes(version1)

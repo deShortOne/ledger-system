@@ -7,6 +7,7 @@ import (
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
 	"github.com/deshortone/ledger-system/internal/ledger/repository/postgres/accountbalance"
 	"github.com/deshortone/ledger-system/internal/platform/database_base"
+	"github.com/deshortone/ledger-system/pkg/failure"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -30,13 +31,29 @@ func (r *AccountBalancePostgresRepository) CreateNewAccountBalance(ctx context.C
 
 	balance, err := Float64ToNumeric(0)
 	if err != nil {
-		return err
+		return failure.NewFailure(
+			failure.ConversionError,
+			failure.GeneralFailure,
+			err,
+			"Failed to convert initial account balance",
+		)
 	}
-	return queries.CreateAccountBalance(ctx, accountbalance.CreateAccountBalanceParams{
+
+	err = queries.CreateAccountBalance(ctx, accountbalance.CreateAccountBalanceParams{
 		Identifier:       accountId,
 		AvailableBalance: balance,
 		UpdatedAt:        createdAt,
 	})
+	if err != nil {
+		return failure.NewFailure(
+			failure.UnknownRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Failed to create account balance",
+		)
+	}
+
+	return nil
 }
 
 func (r *AccountBalancePostgresRepository) GetAccountBalance(ctx context.Context, accountId uuid.UUID) (dto.AccountBalance, error) {
@@ -45,12 +62,22 @@ func (r *AccountBalancePostgresRepository) GetAccountBalance(ctx context.Context
 
 	accountBalanceRecord, err := queries.GetAccountBalanceAndLock(ctx, accountId)
 	if err != nil {
-		return dto.AccountBalance{}, err
+		return dto.AccountBalance{}, failure.NewFailure(
+			failure.UnknownRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Failed to get account balance",
+		)
 	}
 
 	accountBalance, err := NumericToFloat64(accountBalanceRecord.AvailableBalance)
 	if err != nil {
-		return dto.AccountBalance{}, err
+		return dto.AccountBalance{}, failure.NewFailure(
+			failure.ConversionError,
+			failure.GeneralFailure,
+			err,
+			"Failed to convert account balance",
+		)
 	}
 
 	return dto.AccountBalance{
@@ -66,11 +93,27 @@ func (r *AccountBalancePostgresRepository) UpdateAccountBalance(ctx context.Cont
 
 	balance, err := Float64ToNumeric(record.Availablebalance)
 	if err != nil {
-		return err
+		return failure.NewFailure(
+			failure.ConversionError,
+			failure.GeneralFailure,
+			err,
+			"Failed to convert account balance",
+		)
 	}
-	return queries.UpdateAccountBalance(ctx, accountbalance.UpdateAccountBalanceParams{
+
+	err = queries.UpdateAccountBalance(ctx, accountbalance.UpdateAccountBalanceParams{
 		Identifier:       record.AccountId,
 		AvailableBalance: balance,
 		UpdatedAt:        record.UpdatedAt,
 	})
+	if err != nil {
+		return failure.NewFailure(
+			failure.UnknownRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Failed to update account balance",
+		)
+	}
+
+	return nil
 }

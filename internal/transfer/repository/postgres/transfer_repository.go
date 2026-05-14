@@ -2,12 +2,15 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	"github.com/deshortone/ledger-system/internal/platform/database_base"
 	"github.com/deshortone/ledger-system/internal/transfer/dto"
 	"github.com/deshortone/ledger-system/internal/transfer/repository/postgres/transferdb"
+	"github.com/deshortone/ledger-system/pkg/failure"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -39,13 +42,18 @@ func (r TransferPostgresRepository) CreateTransfer(ctx context.Context, request 
 func (r TransferPostgresRepository) CreateTransferRequest(ctx context.Context, request dto.NewTransferRequest) error {
 	balance, err := Float64ToNumeric(request.Amount)
 	if err != nil {
-		return err
+		return failure.NewFailure(
+			failure.ConversionError,
+			failure.GeneralFailure,
+			err,
+			"Failed to convert transfer request amount",
+		)
 	}
 
 	executor := r.GetExecutor(ctx)
 	queries := transferdb.New(executor)
 
-	return queries.CreateTransferRequest(ctx, transferdb.CreateTransferRequestParams{
+	err = queries.CreateTransferRequest(ctx, transferdb.CreateTransferRequestParams{
 		Identifier:   request.Identifier,
 		Identifier_2: request.FromAccountId,
 		Identifier_3: request.ToAccountId,
@@ -53,6 +61,16 @@ func (r TransferPostgresRepository) CreateTransferRequest(ctx context.Context, r
 		Status:       request.Status,
 		RequestedAt:  request.RequestedAt.Time,
 	})
+	if err != nil {
+		return failure.NewFailure(
+			failure.TransferRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Failed to create transfer request",
+		)
+	}
+
+	return nil
 }
 
 func (r TransferPostgresRepository) GetTransferStatus(ctx context.Context, id uuid.UUID) (string, string, error) {
@@ -61,7 +79,20 @@ func (r TransferPostgresRepository) GetTransferStatus(ctx context.Context, id uu
 
 	data, err := queries.GetTranserRequestStatus(ctx, id)
 	if err != nil {
-		return "", "", err
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", "", failure.NewFailure(
+				failure.TransferRequestNotFound,
+				failure.NotFound,
+				err,
+				"No transfer status record exists for the requested identifier",
+			)
+		}
+		return "", "", failure.NewFailure(
+			failure.TransferRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Failed to fetch transfer status",
+		)
 	}
 
 	return data.Status, data.FailureReason.String, nil
@@ -71,22 +102,42 @@ func (r TransferPostgresRepository) UpdateTransferRequestStatusWithTx(ctx contex
 	executor := r.GetExecutor(ctx)
 	queries := transferdb.New(executor)
 
-	return queries.UpdateTransferRequestStatus(ctx, transferdb.UpdateTransferRequestStatusParams{
+	err := queries.UpdateTransferRequestStatus(ctx, transferdb.UpdateTransferRequestStatusParams{
 		Identifier:    id,
 		Status:        status,
 		FailureReason: pgtype.Text{Valid: false},
 	})
+	if err != nil {
+		return failure.NewFailure(
+			failure.TransferRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Failed to update transfer request status",
+		)
+	}
+
+	return nil
 }
 
-func (r TransferPostgresRepository) UpdateTransferRequestStatusWithFailure(ctx context.Context, id uuid.UUID, status, failure string) error {
+func (r TransferPostgresRepository) UpdateTransferRequestStatusWithFailure(ctx context.Context, id uuid.UUID, status, failureMessage string) error {
 	executor := r.GetExecutor(ctx)
 	queries := transferdb.New(executor)
 
-	return queries.UpdateTransferRequestStatus(ctx, transferdb.UpdateTransferRequestStatusParams{
+	err := queries.UpdateTransferRequestStatus(ctx, transferdb.UpdateTransferRequestStatusParams{
 		Identifier:    id,
 		Status:        status,
-		FailureReason: pgtype.Text{String: failure, Valid: true},
+		FailureReason: pgtype.Text{String: failureMessage, Valid: true},
 	})
+	if err != nil {
+		return failure.NewFailure(
+			failure.TransferRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Failed to update transfer request failure status",
+		)
+	}
+
+	return nil
 }
 
 func NumericToFloat64(n pgtype.Numeric) (float64, error) {
