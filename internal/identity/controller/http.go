@@ -1,11 +1,12 @@
 package controller
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/deshortone/ledger-system/internal/identity/domain"
+	"github.com/deshortone/ledger-system/pkg/failure"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -47,13 +48,13 @@ func (h *Handler) RegisterRoutes(c *gin.RouterGroup) {
 func (h *Handler) createUser(c *gin.Context) {
 	var daRequest NewUserRequst
 	if err := c.BindJSON(&daRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ensure body is created correctly"})
+		c.Errors = append(c.Errors, c.Error(failure.NewFailure(failure.ConversionError, failure.Validation, errors.New("ensure body is created correctly"), "")))
 		return
 	}
 
 	user, err := h.userService.CreateNewUser(c.Request.Context(), daRequest.FirstName, daRequest.LastName)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("unknown error occured: %s", err.Error())})
+		c.Errors = append(c.Errors, c.Error(err))
 		return
 	}
 
@@ -73,23 +74,23 @@ func (h *Handler) createUser(c *gin.Context) {
 func (h *Handler) createAccount(c *gin.Context) {
 	userIdString := c.Param("userId")
 	if userIdString == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user id is missing"})
+		c.Errors = append(c.Errors, c.Error(failure.NewFailure(failure.ConversionError, failure.Validation, errors.New("user id is missing"), "")))
 		return
 	}
 	userId, err := uuid.Parse(userIdString)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user id is incorrect", "technical message": err.Error()})
+		c.Errors = append(c.Errors, c.Error(failure.NewFailure(failure.ConversionError, failure.Validation, errors.New("user id is incorrect"), err.Error())))
 		return
 	}
 
 	var daRequest NewAccountRequest
 	if err := c.BindJSON(&daRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ensure body is created correctly"})
+		c.Errors = append(c.Errors, c.Error(failure.NewFailure(failure.ConversionError, failure.Validation, errors.New("ensure body is created correctly"), err.Error())))
 		return
 	}
 
 	if _, err := h.accountCreator.AddAccountToUser(c.Request.Context(), userId, daRequest.AccountType, daRequest.Currency); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("unknown error occured: %s", err.Error())})
+		c.Errors = append(c.Errors, c.Error(err))
 		return
 	}
 
@@ -109,18 +110,18 @@ func (h *Handler) createAccount(c *gin.Context) {
 func (h *Handler) getAccountsForUser(c *gin.Context) {
 	userIdString := c.Param("userId")
 	if userIdString == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user id is missing"})
+		c.Errors = append(c.Errors, c.Error(failure.NewFailure(failure.ConversionError, failure.Validation, errors.New("user id is missing"), "")))
 		return
 	}
 	userId, err := uuid.Parse(userIdString)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user id is incorrect", "technical message": err.Error()})
+		c.Errors = append(c.Errors, c.Error(failure.NewFailure(failure.ConversionError, failure.Validation, errors.New("user id is incorrect"), err.Error())))
 		return
 	}
 
 	accounts, err := h.accountService.GetAccountsOwnedByUser(c.Request.Context(), userId)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("unknown error occured: %s", err.Error())})
+		c.Errors = append(c.Errors, c.Error(err))
 		return
 	}
 

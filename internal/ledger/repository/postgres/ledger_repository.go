@@ -7,6 +7,7 @@ import (
 	"github.com/deshortone/ledger-system/internal/ledger/dto"
 	"github.com/deshortone/ledger-system/internal/ledger/repository/postgres/ledgerdb"
 	"github.com/deshortone/ledger-system/internal/platform/database_base"
+	"github.com/deshortone/ledger-system/pkg/failure"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -30,9 +31,15 @@ func (r *LedgerPostgresRepository) CreateLedgerEntry(ctx context.Context, record
 
 	balance, err := Float64ToNumeric(record.Amount)
 	if err != nil {
-		return err
+		return failure.NewFailure(
+			failure.ConversionError,
+			failure.GeneralFailure,
+			err,
+			"Failed to convert ledger entry amount",
+		)
 	}
-	return queries.CreateLedgerEntry(ctx, ledgerdb.CreateLedgerEntryParams{
+
+	err = queries.CreateLedgerEntry(ctx, ledgerdb.CreateLedgerEntryParams{
 		Identifier:   record.Identifier,    // yikes
 		Identifier_2: record.TransactionId, // yikes_2
 		Identifier_3: record.AccountId,     // yikes_3
@@ -40,18 +47,38 @@ func (r *LedgerPostgresRepository) CreateLedgerEntry(ctx context.Context, record
 		Direction:    ledgerdb.LedgerEntryDirection(record.Direction),
 		CreatedAt:    record.CreatedAt,
 	})
+	if err != nil {
+		return failure.NewFailure(
+			failure.UnknownRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Failed to create ledger entry",
+		)
+	}
+
+	return nil
 }
 
 func (r *LedgerPostgresRepository) CreateTransaction(ctx context.Context, record dto.Transaction) error {
 	executor := r.GetExecutor(ctx)
 	queries := ledgerdb.New(executor)
 
-	return queries.CreateTransaction(ctx, ledgerdb.CreateTransactionParams{
+	err := queries.CreateTransaction(ctx, ledgerdb.CreateTransactionParams{
 		Identifier:   record.Identifier,
 		Identifier_2: record.TransferId,
 		CreatedAt:    record.CreatedAt,
 		Status:       record.Status,
 	})
+	if err != nil {
+		return failure.NewFailure(
+			failure.UnknownRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Failed to create transaction",
+		)
+	}
+
+	return nil
 }
 
 func NumericToFloat64(n pgtype.Numeric) (float64, error) {

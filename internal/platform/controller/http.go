@@ -44,7 +44,7 @@ func (h *Handler) getLiveness(c *gin.Context) {
 //	@Router			/health/readiness		[get]
 func (h *Handler) getReadiness(c *gin.Context) {
 	if err := h.platformService.IsUp(c.Request.Context()); err != nil {
-		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()}) // unique
 		return
 	}
 

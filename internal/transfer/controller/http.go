@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/deshortone/ledger-system/internal/transfer/domain"
+	"github.com/deshortone/ledger-system/pkg/failure"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -44,19 +46,19 @@ func (h *Handler) RegisterRoutes(c *gin.RouterGroup) {
 func (h *Handler) depositMoney(c *gin.Context) {
 	var daRequest DepositMoneyRequest
 	if err := c.BindJSON(&daRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ensure body is created correctly"})
+		c.Errors = append(c.Errors, c.Error(failure.NewFailure(failure.ConversionError, failure.Validation, errors.New("ensure body is created correctly"), "")))
 		return
 	}
 
 	toAccountId, err := uuid.Parse(daRequest.ToAccountId)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ensure toAccountId has been correctly setup"})
+		c.Errors = append(c.Errors, c.Error(failure.NewFailure(failure.ConversionError, failure.Validation, errors.New("ensure toAccountId has been correctly setup"), "")))
 		return
 	}
 
 	transferId, err := h.transferApplication.TransferMoney(c.Request.Context(), uuid.MustParse("6724081d-6f50-4172-92c1-9c5d571f051c"), toAccountId, daRequest.Amount)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unknown error", "Message": err.Error()})
+		c.Errors = append(c.Errors, c.Error(err))
 		return
 	}
 
@@ -78,19 +80,19 @@ func (h *Handler) depositMoney(c *gin.Context) {
 func (h *Handler) getTransferStatus(c *gin.Context) {
 	var daRequest TransferMoneyStatusRequest
 	if err := c.BindJSON(&daRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ensure body is created correctly"})
+		c.Errors = append(c.Errors, c.Error(failure.NewFailure(failure.ConversionError, failure.Validation, errors.New("ensure body is created correctly"), "")))
 		return
 	}
 
 	transferId, err := uuid.Parse(daRequest.TransferId)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ensure transferId has been correctly setup"})
+		c.Errors = append(c.Errors, c.Error(failure.NewFailure(failure.ConversionError, failure.Validation, errors.New("ensure transferId has been correctly setup"), "")))
 		return
 	}
 
 	transferStatus, err := h.transferReadonlyService.GetTransferStatus(c.Request.Context(), transferId)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "unknown error", "message": err.Error()})
+		c.Errors = append(c.Errors, c.Error(err))
 		return
 	}
 
@@ -112,25 +114,25 @@ func (h *Handler) getTransferStatus(c *gin.Context) {
 func (h *Handler) transferMoney(c *gin.Context) {
 	var daRequest TransferMoneyRequest
 	if err := c.BindJSON(&daRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ensure body is created correctly"})
+		c.Errors = append(c.Errors, c.Error(failure.NewFailure(failure.ConversionError, failure.Validation, errors.New("ensure body is created correctly"), "")))
 		return
 	}
 
 	fromAccountId, err := uuid.Parse(daRequest.FromAccountId)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ensure fromAccountId has been correctly setup"})
+		c.Errors = append(c.Errors, c.Error(failure.NewFailure(failure.ConversionError, failure.Validation, errors.New("ensure fromAccountId has been correctly setup"), "")))
 		return
 	}
 
 	toAccountId, err := uuid.Parse(daRequest.ToAccountId)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ensure toAccountId has been correctly setup"})
+		c.Errors = append(c.Errors, c.Error(failure.NewFailure(failure.ConversionError, failure.Validation, errors.New("ensure toAccountId has been correctly setup"), "")))
 		return
 	}
 
 	transferId, err := h.transferApplication.TransferMoney(c.Request.Context(), fromAccountId, toAccountId, daRequest.Amount)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unknown error", "Message": err.Error()})
+		c.Errors = append(c.Errors, c.Error(err))
 		return
 	}
 

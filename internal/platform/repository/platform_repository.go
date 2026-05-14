@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/deshortone/ledger-system/internal/platform/database_base"
+	"github.com/deshortone/ledger-system/pkg/failure"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -23,5 +24,14 @@ func NewPlatformPostgresRepository(pool *pgxpool.Pool) TransferPostgresRepositor
 func (r TransferPostgresRepository) IsUp(ctx context.Context) error {
 	executor := r.GetExecutor(ctx)
 	_, err := executor.Exec(ctx, "SELECT 1")
-	return err
+	if err != nil {
+		return failure.NewFailure(
+			failure.PlatformRepositoryError,
+			failure.GeneralFailure,
+			err,
+			"Platform health check query failed",
+		)
+	}
+
+	return nil
 }
