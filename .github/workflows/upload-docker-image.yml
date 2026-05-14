@@ -30,3 +30,4 @@ jobs:
           push: true
           tags: |
             deshortone/ledger-system-practice:${{ github.sha }}
+            deshortone/ledger-system-practice:latest
