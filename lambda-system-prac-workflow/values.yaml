@@ -2,8 +2,8 @@ replicaCount: 1
 
 image:
   repository: deshortone/ledger-system-practice
-  pullPolicy: IfNotPresent
-  tag: "0.0.1"
+  pullPolicy: Always
+  tag: "latest"
 
 imagePullSecrets: []
 nameOverride: ""
